@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Calorie Adjustment Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* top align so header isn't pushed off-screen on small viewports */
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            overflow: visible;
+            position: relative;
+        }
+
+        .logo-header {
+            background: linear-gradient(to right, #4b6cb7, #182848);
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+
+        .logo {
+            font-family: 'Raleway', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            position: relative;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1rem;
+            max-width: 90%;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .content {
+            padding: 25px 20px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #2196F3;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-box h3 {
+            color: #0d47a1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box h3 i {
+            font-size: 1.4rem;
+        }
+
+        .info-box p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .info-box ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .info-box li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 25px;
+            line-height: 1.5;
+        }
+
+        .info-box li::before {
+            content: "•";
+            color: #2196F3;
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label i {
+            color: #4b6cb7;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+            color: #2c3e50;
+        }
+
+        select:focus, input:focus {
+            border-color: #4b6cb7;
+            outline: none;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(75, 108, 183, 0.2);
+        }
+
+        .goal-field {
+            display: block;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #calculateBtn {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        #resetBtn {
+            background: linear-gradient(to right, #f44336, #c62828);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            background: linear-gradient(135deg, #f5f7fa, #e4e7f1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e0e0e0;
+        }
+
+        .results h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-value {
+            font-weight: 700;
+            text-align: right;
+            font-size: 1.1rem;
+        }
+
+        .positive {
+            color: #2E7D32;
+        }
+
+        .negative {
+            color: #c62828;
+        }
+
+        .action-box {
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: none;
+        }
+
+        .increase-action {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #2E7D32;
+            border: 2px solid #a5d6a7;
+        }
+
+        .decrease-action {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            color: #c62828;
+            border: 2px solid #ef9a9a;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            background-color: rgba(245, 245, 245, 0.8);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .logo-header {
+                padding: 20px 15px;
+            }
+
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            button {
+                padding: 14px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-header">
+            <div class="logo">Calorie Adjustment Calculator</div>
+            <p class="logo-subtitle">Precisely adjust your calorie intake based on weekly weight trends</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h3><i class="fas fa-info-circle"></i> How to Use This Calculator</h3>
+                <p>This tool helps you adjust your daily calorie intake based on your actual weight change compared to your goal. Here's how to use it:</p>
+
+                <h3><i class="fas fa-calculator"></i> Calculating Weekly Median Weight</h3>
+                <ul>
+                    <li>Weigh yourself at the same time each day for a week</li>
+                    <li>Record all 7 weights (e.g. 75.2, 75.0, 74.8, 75.1, 75.3, 74.9, 75.0)</li>
+                    <li>Sort the weights from lowest to highest</li>
+                    <li>The median is the middle value (4th value in this example: 75.0 kg)</li>
+                </ul>
+
+                <h3><i class="fas fa-lightbulb"></i> Why This Calculator is Useful</h3>
+                <p>By comparing weekly median weights, you eliminate daily fluctuations and get a true picture of your weight trend. The calculator then tells you exactly how to adjust your calories to stay on track with your goals.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="goal"><i class="fas fa-bullseye"></i> Goal Type:</label>
+                <select id="goal" onchange="toggleGoalField()" required>
+                    <option value="" disabled selected>Select your goal</option>
+                    <option value="loss">Weight Loss</option>
+                    <option value="gain">Weight Gain</option>
+                    <option value="maintenance">Weight Maintenance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="prev_weight"><i class="fas fa-weight-scale"></i> Previous Weekly Median Weight (kg):</label>
+                <input type="number" step="0.1" id="prev_weight" placeholder="e.g., 75.5">
+            </div>
+
+            <div class="form-group">
+                <label for="curr_weight"><i class="fas fa-weight-scale"></i> Current Weekly Median Weight (kg):</label>
+                <input type="number" step="0.1" id="curr_weight" placeholder="e.g., 74.8">
+            </div>
+
+            <div class="form-group goal-field" id="goalField">
+                <label for="weekly_goal"><i class="fas fa-tachometer-alt"></i> Weekly Goal Amount (kg/week):</label>
+                <input type="number" step="0.1" id="weekly_goal" placeholder="e.g., 0.5 (for loss/gain)">
+            </div>
+
+            <div class="form-group">
+                <label for="calories"><i class="fas fa-fire"></i> Current Daily Calories:</label>
+                <input type="number" id="calories" placeholder="e.g., 2000">
+            </div>
+
+            <div class="buttons">
+                <button id="calculateBtn" type="button"><i class="fas fa-calculator"></i> Calculate Adjustment</button>
+                <button id="resetBtn" type="button"><i class="fas fa-redo"></i> Reset Form</button>
+            </div>
+
+            <div class="results" id="resultsSection">
+                <h2><i class="fas fa-chart-line"></i> Your Calorie Adjustment</h2>
+
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="result-label"><i class="fas fa-exchange-alt"></i> Daily Adjustment Needed:</span>
+                        <span class="result-value" id="adjustment">-</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label"><i class="fas fa-burn"></i> Current Calories:</span>
+                        <span class="result-value" id="current_calories">-</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span class="result-label"><i class="fas fa-bullseye"></i> New Calorie Target:</span>
+                        <span class="result-value" id="new_calories">-</span>
+                    </div>
+                </div>
+
+                <div class="action-box" id="actionBox">
+                    <span id="actionText"></span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Calorie Adjustment Calculator &copy; 2023 | Precision Nutrition Tool</p>
+        </footer>
+    </div>
+
+    <script>
+        // Constants
+        const DAILY_FACTOR = 7700 / 7; // 1100 kcal per kg per day
+
+        // DOM Elements
+        const goalSelect = document.getElementById('goal');
+        const goalField = document.getElementById('goalField');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const adjustmentEl = document.getElementById('adjustment');
+        const currentCaloriesEl = document.getElementById('current_calories');
+        const newCaloriesEl = document.getElementById('new_calories');
+        const actionBox = document.getElementById('actionBox');
+        const actionText = document.getElementById('actionText');
+
+        // Toggle weekly goal field based on selection
+        function toggleGoalField() {
+            const goal = goalSelect.value;
+            goalField.style.display = (goal === 'maintenance') ? 'none' : 'block';
+        }
+
+        // Helper: check if element is fully visible in viewport considering header height
+        function isElementFullyVisible(el, headerHeight = 0) {
+            const rect = el.getBoundingClientRect();
+            return (rect.top >= headerHeight) && (rect.bottom <= window.innerHeight);
+        }
+
+        // Main calculation function
+        function calculate() {
+            try {
+                // Get values
+                const goal = goalSelect.value;
+                const prev_weight = parseFloat(document.getElementById('prev_weight').value);
+                const curr_weight = parseFloat(document.getElementById('curr_weight').value);
+                const calories = parseFloat(document.getElementById('calories').value);
+
+                // Validate goal selection
+                if (!goal) throw "Please select a goal type";
+
+                let adjustment = 0;
+                let weekly_goal = 0;
+
+                if (goal !== 'maintenance') {
+                    weekly_goal = parseFloat(document.getElementById('weekly_goal').value);
+                }
+
+                // Validate inputs
+                if (isNaN(prev_weight)) throw "Please enter previous weight";
+                if (isNaN(curr_weight)) throw "Please enter current weight";
+                if (isNaN(calories)) throw "Please enter current calories";
+                if (goal !== 'maintenance' && isNaN(weekly_goal)) throw "Please enter weekly goal amount";
+
+                // Perform calculation based on goal
+                if (goal === 'loss') {
+                    const actual_change = prev_weight - curr_weight;
+                    adjustment = (actual_change - weekly_goal) * DAILY_FACTOR;
+                }
+                else if (goal === 'gain') {
+                    const actual_change = curr_weight - prev_weight;
+                    adjustment = -1 * (actual_change - weekly_goal) * DAILY_FACTOR;
+                }
+                else if (goal === 'maintenance') {
+                    const weight_change = curr_weight - prev_weight;
+                    adjustment = -1 * weight_change * DAILY_FACTOR;
+                }
+
+                // Calculate new calories
+                const new_calories = calories + adjustment;
+
+                // Format results
+                const sign = adjustment >= 0 ? '+' : '';
+                const adjustmentText = `${sign}${Math.abs(adjustment).toFixed(0)} calories`;
+
+                const action = adjustment >= 0 ?
+                    `INCREASE your daily intake by ${Math.abs(adjustment).toFixed(0)} calories` :
+                    `DECREASE your daily intake by ${Math.abs(adjustment).toFixed(0)} calories`;
+
+                // Update UI with results
+                adjustmentEl.textContent = adjustmentText;
+                adjustmentEl.className = adjustment >= 0 ? 'result-value positive' : 'result-value negative';
+
+                currentCaloriesEl.textContent = `${calories.toFixed(0)} calories`;
+                newCaloriesEl.textContent = `${new_calories.toFixed(0)} calories`;
+
+                // Update action box
+                actionText.textContent = action;
+                actionBox.className = adjustment >= 0 ? 'action-box increase-action' : 'action-box decrease-action';
+                actionBox.style.display = 'block';
+
+                // Show results section
+                resultsSection.style.display = 'block';
+
+                // --- SMART SCROLL BEHAVIOR ---
+                // If results are already fully visible (considering header height), do nothing.
+                // Otherwise, smoothly scroll so results appear right below the header (with a small gap).
+                const headerEl = document.querySelector('.logo-header');
+                const headerHeight = headerEl ? headerEl.offsetHeight : 0;
+                // Recompute rect after making results visible
+                const rect = resultsSection.getBoundingClientRect();
+
+                if (!isElementFullyVisible(resultsSection, headerHeight)) {
+                    // Compute document scroll target: current scroll + rect.top - headerHeight - gap
+                    const gap = 12; // px spacing between header and results
+                    const targetScroll = window.scrollY + rect.top - headerHeight - gap;
+                    window.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+                }
+                // --- end smart scroll ---
+
+            } catch (error) {
+                alert(error);
+            }
+        }
+
+        // Reset form function
+        function resetForm() {
+            goalSelect.value = "";
+            document.getElementById('prev_weight').value = '';
+            document.getElementById('curr_weight').value = '';
+            document.getElementById('weekly_goal').value = '';
+            document.getElementById('calories').value = '';
+            resultsSection.style.display = 'none';
+            actionBox.style.display = 'none';
+            toggleGoalField();
+        }
+
+        // Event Listeners
+        calculateBtn.addEventListener('click', calculate);
+        resetBtn.addEventListener('click', resetForm);
+
+        // Initialize
+        toggleGoalField();
+    </script>
+</body>
+</html>
