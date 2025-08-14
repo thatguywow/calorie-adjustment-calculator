@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-/* Original styling preserved; small tweaks added to make tab buttons reliably clickable and clean up weight median layout */
+/* Styles kept same as previous version (tabs clickable + weight-log layout) */
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif }
 body { background:#2d2d2d; color:#e0e0e0; min-height:100vh; padding:40px 20px; display:flex; justify-content:center; align-items:flex-start; }
 .container { background:#1f1f1f; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); width:100%; max-width:600px; overflow:hidden; }
@@ -16,7 +16,7 @@ body { background:#2d2d2d; color:#e0e0e0; min-height:100vh; padding:40px 20px; d
 .logo { font-family:'Raleway',sans-serif; font-size:2.5rem; font-weight:800; color:transparent; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px; background:linear-gradient(to right,#facc15 0%,#f97316 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; position:relative; z-index:2; }
 .logo-subtitle { color:rgba(255,255,255,0.85); font-size:1rem; max-width:85%; margin:0 auto; line-height:1.6; font-weight:400; position:relative; z-index:2; }
 
-/* Tab bar: raised above pseudo-element and header content to ensure clicks land */
+/* Tab bar */
 .tab-bar { display:flex; gap:8px; justify-content:center; margin-top:16px; z-index:60; position:relative; pointer-events:auto; }
 .tab-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.04); padding:8px 14px; border-radius:8px; cursor:pointer; color:#e0e0e0; font-weight:600; transition:all .15s; position:relative; z-index:61; pointer-events:auto; -webkit-appearance:none; }
 .tab-btn.active { background:rgba(255,255,255,0.08); box-shadow:0 4px 12px rgba(0,0,0,0.25); transform:translateY(-2px); }
@@ -76,38 +76,17 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
 
 .medians-row { display:flex; gap:10px; margin-top:10px; }
 
-/* ---- NEW: improved alignment for the "Current Week Median" / "Previous Week Median" rows ---- */
-/* Use flex so label is left and value is pushed to the right with good spacing */
-.weight-log .result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    background: transparent;
-    border: none;
-}
-.weight-log .result-item .result-label {
-    flex: 1 1 auto;
-    color: #d1d1d1;
-    font-weight: 500;
-}
-.weight-log .result-item .result-value {
-    flex: 0 0 auto;
-    margin-left: 20px;          /* breathing room so value doesn't sit flush to the label */
-    text-align: right;
-    font-weight: 600;
-    font-size: 1.05rem;
-    color: #fff;
-}
+/* alignment for medians rows */
+.weight-log .result-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; background:transparent; border:none; }
+.weight-log .result-item .result-label { flex:1 1 auto; color:#d1d1d1; font-weight:500; }
+.weight-log .result-item .result-value { flex:0 0 auto; margin-left:20px; text-align:right; font-weight:600; font-size:1.05rem; color:#fff; }
 
-/* responsive: stack neatly on small screens if necessary */
 @media (max-width:480px) {
   body { padding:20px; }
   .logo { font-size:2rem; }
   .content { padding:25px 15px; }
   .medians-row { flex-direction:column; }
   .median-btn { min-width:100%; }
-  .weight-log .result-item { gap:12px; }
 }
     </style>
 </head>
@@ -265,7 +244,7 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
     </div>
 
     <script>
-/* Calculator logic unchanged (kept intact) */
+/* --- Constants / DOM --- */
 const DAILY_FACTOR = 7700 / 7;
 const MIN_SAFE_CALORIES = 1200;
 const STORAGE_KEY = 'calorie_weight_weeks_v2';
@@ -301,6 +280,309 @@ const copyPrevToCalcBtn = document.getElementById('copyPrevToCalc');
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
+/* --- Utility: median (true median) --- */
+function computeMedian(arr) {
+    if (!arr || arr.length === 0) return null;
+    // ensure numeric
+    const numeric = arr.map(x => Number(x)).filter(x => !isNaN(x));
+    if (numeric.length === 0) return null;
+    numeric.sort((a,b) => a - b);
+    const mid = Math.floor(numeric.length / 2);
+    if (numeric.length % 2 === 1) return numeric[mid];
+    // even -> median is average of middle two (this is standard median definition)
+    return (numeric[mid-1] + numeric[mid]) / 2;
+}
+
+/* --- Storage helpers --- */
+function saveStorage(obj) { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+function loadStorage() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { weeks: [] };
+        return JSON.parse(raw);
+    } catch (e) {
+        return { weeks: [] };
+    }
+}
+function parseYMDToUTC(dateStr) {
+    if (!dateStr) return null;
+    const p = dateStr.split('-').map(Number);
+    if (p.length !== 3 || p.some(isNaN)) return null;
+    return new Date(Date.UTC(p[0], p[1]-1, p[2]));
+}
+function formatUTCToYMD(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth()+1).padStart(2,'0');
+    const day = String(d.getUTCDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+}
+function addDaysUTC(d, days) {
+    const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    r.setUTCDate(r.getUTCDate() + days);
+    return r;
+}
+
+/* --- Calendar / week utilities --- */
+function findWeekContaining(dateStr, storage) {
+    const d = parseYMDToUTC(dateStr);
+    if (!d) return -1;
+    const w = storage.weeks || [];
+    for (let i=0;i<w.length;i++) {
+        const start = parseYMDToUTC(w[i].start);
+        const end = addDaysUTC(start, 6);
+        if (d.getTime() >= start.getTime() && d.getTime() <= end.getTime()) return i;
+    }
+    return -1;
+}
+function insertWeekSorted(newWeek, storage) {
+    storage.weeks = storage.weeks || [];
+    storage.weeks.push(newWeek);
+    storage.weeks.sort((a,b)=> a.start > b.start ? 1 : -1);
+}
+
+/* --- Recompute and store a week's median whenever entries change --- */
+function updateWeekMedianAndSave(storage, weekIndex) {
+    if (!storage.weeks || !storage.weeks[weekIndex]) return;
+    const wk = storage.weeks[weekIndex];
+    const values = wk.entries ? Object.values(wk.entries).map(Number) : [];
+    const med = computeMedian(values);
+    // store median explicitly (null if no entries)
+    wk.median = med === null ? null : Number(med);
+    saveStorage(storage);
+}
+
+/* --- Add / update / delete entries (ensuring median stored) --- */
+function addOrUpdateEntry(dateStr, weightVal) {
+    if (!dateStr) { alert('Please pick a date'); return; }
+    const dt = parseYMDToUTC(dateStr);
+    if (!dt) { alert('Invalid date'); return; }
+    if (isNaN(weightVal)) { alert('Please enter a valid weight'); return; }
+
+    const storage = loadStorage();
+    storage.weeks = storage.weeks || [];
+    const normalized = formatUTCToYMD(dt);
+    const containingIdx = findWeekContaining(normalized, storage);
+
+    // inside existing week -> update
+    if (containingIdx !== -1) {
+        const wk = storage.weeks[containingIdx];
+        wk.entries = wk.entries || {};
+        wk.entries[normalized] = Number(weightVal);
+        updateWeekMedianAndSave(storage, containingIdx);
+        renderWeekData();
+        return;
+    }
+
+    // no weeks yet -> create first week starting at this date
+    if (!storage.weeks || storage.weeks.length === 0) {
+        const newWeek = { start: normalized, entries: {}, median: null };
+        newWeek.entries[normalized] = Number(weightVal);
+        updateWeekMedianAndSave({ weeks: [newWeek] }, 0); // store median on newWeek and save
+        insertWeekSorted(newWeek, storage);
+        saveStorage(storage);
+        renderWeekData();
+        return;
+    }
+
+    // date < first.start -> create earlier week
+    const firstStart = parseYMDToUTC(storage.weeks[0].start);
+    if (dt.getTime() < firstStart.getTime()) {
+        const newWeek = { start: normalized, entries: {}, median: null };
+        newWeek.entries[normalized] = Number(weightVal);
+        updateWeekMedianAndSave({ weeks: [newWeek] }, 0);
+        insertWeekSorted(newWeek, storage);
+        saveStorage(storage);
+        renderWeekData();
+        return;
+    }
+
+    // Find a gap where we can start a new week: date must be after previous week's end
+    for (let i=0;i<storage.weeks.length;i++) {
+        const w = storage.weeks[i];
+        const wStart = parseYMDToUTC(w.start);
+        const wEnd = addDaysUTC(wStart, 6);
+        if (dt.getTime() < wStart.getTime()) {
+            // check previous
+            const prev = storage.weeks[i-1];
+            const prevEnd = addDaysUTC(parseYMDToUTC(prev.start), 6);
+            if (dt.getTime() > prevEnd.getTime()) {
+                const newWeek = { start: normalized, entries: {}, median: null };
+                newWeek.entries[normalized] = Number(weightVal);
+                updateWeekMedianAndSave({ weeks: [newWeek] }, 0);
+                insertWeekSorted(newWeek, storage);
+                saveStorage(storage);
+                renderWeekData();
+                return;
+            } else {
+                alert('This date falls into an unfinished period — it must be inside an existing week or after the previous week ended to start a new week.');
+                return;
+            }
+        }
+    }
+
+    // If date is after last week's end -> append new week
+    const last = storage.weeks[storage.weeks.length - 1];
+    const lastEnd = addDaysUTC(parseYMDToUTC(last.start), 6);
+    if (dt.getTime() > lastEnd.getTime()) {
+        const newWeek = { start: normalized, entries: {}, median: null };
+        newWeek.entries[normalized] = Number(weightVal);
+        updateWeekMedianAndSave({ weeks: [newWeek] }, 0);
+        insertWeekSorted(newWeek, storage);
+        saveStorage(storage);
+        renderWeekData();
+        return;
+    }
+
+    alert('Could not place date into a week. Ensure it either falls into an existing week or is after the last week ended to start a new one.');
+}
+
+function deleteEntry(dateStr) {
+    const storage = loadStorage();
+    if (!storage.weeks) return;
+    for (let i=0;i<storage.weeks.length;i++) {
+        const wk = storage.weeks[i];
+        if (wk.entries && wk.entries[dateStr] !== undefined) {
+            delete wk.entries[dateStr];
+            // recompute median (and save), or remove week if empty
+            if (!wk.entries || Object.keys(wk.entries).length === 0) {
+                storage.weeks.splice(i,1);
+            } else {
+                updateWeekMedianAndSave(storage, i);
+            }
+            saveStorage(storage);
+            renderWeekData();
+            return;
+        }
+    }
+}
+
+/* --- Render current/previous medians and the active week's log list --- */
+function renderWeekData() {
+    const storage = loadStorage();
+    storage.weeks = storage.weeks || [];
+
+    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
+    let currentWeek = null;
+    let previousWeek = null;
+
+    for (let i=0;i<storage.weeks.length;i++) {
+        const w = storage.weeks[i];
+        const s = parseYMDToUTC(w.start);
+        const e = addDaysUTC(s, 6);
+        if (today.getTime() >= s.getTime() && today.getTime() <= e.getTime()) {
+            currentWeek = { index:i, week:w };
+            if (i-1 >= 0) previousWeek = { index:i-1, week: storage.weeks[i-1] };
+            break;
+        }
+        if (today.getTime() > e.getTime()) {
+            previousWeek = { index:i, week:w };
+            continue;
+        }
+        if (today.getTime() < s.getTime()) {
+            break;
+        }
+    }
+
+    if (!currentWeek && storage.weeks.length > 0) {
+        const last = storage.weeks[storage.weeks.length - 1];
+        const lastEnd = addDaysUTC(parseYMDToUTC(last.start), 6);
+        if (today.getTime() > lastEnd.getTime()) {
+            previousWeek = { index: storage.weeks.length - 1, week: last };
+        }
+    }
+
+    // Prefer stored median if present; else compute from entries (defensive)
+    const currMedian = (currentWeek && currentWeek.week.median !== undefined && currentWeek.week.median !== null)
+        ? Number(currentWeek.week.median)
+        : (currentWeek ? computeMedian(Object.values(currentWeek.week.entries || {}).map(Number)) : null);
+
+    const prevMedian = (previousWeek && previousWeek.week.median !== undefined && previousWeek.week.median !== null)
+        ? Number(previousWeek.week.median)
+        : (previousWeek ? computeMedian(Object.values(previousWeek.week.entries || {}).map(Number)) : null);
+
+    currentWeekMedianEl.textContent = currMedian === null ? '-' : currMedian.toFixed(2) + ' kg';
+    previousWeekMedianEl.textContent = prevMedian === null ? '-' : prevMedian.toFixed(2) + ' kg';
+
+    // Render the active week's entries (only entries inside current week are shown)
+    logList.innerHTML = '';
+    if (currentWeek) {
+        const entriesArr = Object.entries(currentWeek.week.entries || {}).map(([d,w]) => ({ date: d, weight: Number(w) }));
+        if (entriesArr.length === 0) {
+            logList.innerHTML = '<div style="color:#9ca3af">No entries for the current 7-day block yet.</div>';
+        } else {
+            entriesArr.sort((a,b)=> a.date > b.date ? 1 : -1).forEach(entry => {
+                const row = document.createElement('div');
+                row.className = 'log-item';
+                row.innerHTML = `<div><strong>${entry.weight.toFixed(1)} kg</strong><br><small>${entry.date}</small></div>
+                                 <div style="display:flex; gap:8px;">
+                                   <button class="small-btn" data-copy="${entry.date}" type="button">Copy</button>
+                                   <button class="small-btn delete" data-delete="${entry.date}" type="button">Del</button>
+                                 </div>`;
+                logList.appendChild(row);
+            });
+            // attach handlers
+            logList.querySelectorAll('[data-copy]').forEach(b=>{
+                b.addEventListener('click', ev=>{
+                    const date = ev.currentTarget.getAttribute('data-copy');
+                    const st = loadStorage();
+                    if (!st.weeks) return;
+                    for (const w of st.weeks) {
+                        if (w.entries && w.entries[date] !== undefined) {
+                            logDateInput.value = date;
+                            logWeightInput.value = Number(w.entries[date]).toFixed(1);
+                            return;
+                        }
+                    }
+                });
+            });
+            logList.querySelectorAll('[data-delete]').forEach(b=>{
+                b.addEventListener('click', ev=>{
+                    const date = ev.currentTarget.getAttribute('data-delete');
+                    if (!confirm('Delete this entry?')) return;
+                    deleteEntry(date);
+                });
+            });
+        }
+    } else {
+        logList.innerHTML = '<div style="color:#9ca3af">No active 7-day block started. Add a log dated after the previous block ends (or create the first block) to start a new week.</div>';
+    }
+}
+
+/* --- Copy medians into calculator fields (use stored median if present) --- */
+copyCurrToCalcBtn.addEventListener('click', ()=>{
+    const storage = loadStorage();
+    let currIdx = -1;
+    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
+    for (let i=0;i<storage.weeks.length;i++) {
+        const s = parseYMDToUTC(storage.weeks[i].start);
+        const e = addDaysUTC(s,6);
+        if (today.getTime() >= s.getTime() && today.getTime() <= e.getTime()) { currIdx = i; break; }
+    }
+    if (currIdx === -1) { alert('No active current 7-day block available.'); return; }
+    const wk = storage.weeks[currIdx];
+    const med = (wk.median !== undefined && wk.median !== null) ? Number(wk.median) : computeMedian(Object.values(wk.entries || {}).map(Number));
+    if (med === null) { alert('No median yet'); return; }
+    document.getElementById('curr_weight').value = med.toFixed(1);
+    tabCalculator.click();
+});
+copyPrevToCalcBtn.addEventListener('click', ()=>{
+    const storage = loadStorage();
+    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
+    let lastFinished = -1;
+    for (let i=0;i<storage.weeks.length;i++) {
+        const s = parseYMDToUTC(storage.weeks[i].start);
+        const e = addDaysUTC(s,6);
+        if (e.getTime() < today.getTime()) lastFinished = i;
+    }
+    if (lastFinished === -1) { alert('No previous finished week available'); return; }
+    const wk = storage.weeks[lastFinished];
+    const med = (wk.median !== undefined && wk.median !== null) ? Number(wk.median) : computeMedian(Object.values(wk.entries || {}).map(Number));
+    if (med === null) { alert('No median yet'); return; }
+    document.getElementById('prev_weight').value = med.toFixed(1);
+    tabCalculator.click();
+});
+
+/* --- Calculator logic unchanged (keeps median usage separate) --- */
 function toggleGoalField() {
     const goal = goalSelect.value;
     const goalField = document.getElementById('goalField');
@@ -435,237 +717,7 @@ calculateBtn.addEventListener('click', calculate);
 resetBtn.addEventListener('click', resetForm);
 toggleGoalField();
 
-/* --- New week/session storage & logic (user-started 7-day blocks) --- */
-function saveStorage(obj) { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
-function loadStorage() { try { const raw = localStorage.getItem(STORAGE_KEY); if (!raw) return { weeks: [] }; return JSON.parse(raw); } catch (e) { return { weeks: [] }; } }
-function parseYMDToUTC(dateStr) { if (!dateStr) return null; const p = dateStr.split('-').map(Number); if (p.length !== 3 || p.some(isNaN)) return null; return new Date(Date.UTC(p[0], p[1]-1, p[2])); }
-function formatUTCToYMD(d) { const y = d.getUTCFullYear(); const m = String(d.getUTCMonth()+1).padStart(2,'0'); const day = String(d.getUTCDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
-function addDaysUTC(d, days) { const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); r.setUTCDate(r.getUTCDate() + days); return r; }
-function computeMedian(arr) { if (!arr || arr.length === 0) return null; const s = arr.slice().sort((x,y)=>x-y); const mid = Math.floor(s.length/2); if (s.length % 2 === 1) return s[mid]; return (s[mid-1] + s[mid]) / 2; }
-function compareYMD(a,b) { return a===b?0:(a>b?1:-1); }
-
-function findWeekContaining(dateStr, storage) {
-    const d = parseYMDToUTC(dateStr);
-    if (!d) return -1;
-    const w = storage.weeks || [];
-    for (let i=0;i<w.length;i++) {
-        const start = parseYMDToUTC(w[i].start);
-        const end = addDaysUTC(start, 6);
-        if (d.getTime() >= start.getTime() && d.getTime() <= end.getTime()) return i;
-    }
-    return -1;
-}
-function insertWeekSorted(newWeek, storage) {
-    storage.weeks = storage.weeks || [];
-    storage.weeks.push(newWeek);
-    storage.weeks.sort((a,b)=> a.start > b.start ? 1 : -1);
-}
-function deleteEntry(dateStr) {
-    const storage = loadStorage();
-    if (!storage.weeks) return;
-    for (let i=0;i<storage.weeks.length;i++) {
-        const wk = storage.weeks[i];
-        if (wk.entries && wk.entries[dateStr] !== undefined) {
-            delete wk.entries[dateStr];
-            if (!wk.entries || Object.keys(wk.entries).length === 0) storage.weeks.splice(i,1);
-            saveStorage(storage);
-            renderWeekData();
-            return;
-        }
-    }
-}
-
-function addOrUpdateEntry(dateStr, weightVal) {
-    if (!dateStr) { alert('Please pick a date'); return; }
-    const dt = parseYMDToUTC(dateStr);
-    if (!dt) { alert('Invalid date'); return; }
-    if (isNaN(weightVal)) { alert('Please enter a valid weight'); return; }
-
-    const storage = loadStorage();
-    storage.weeks = storage.weeks || [];
-    const containingIdx = findWeekContaining(dateStr, storage);
-    const normalized = formatUTCToYMD(dt);
-
-    if (containingIdx !== -1) {
-        storage.weeks[containingIdx].entries = storage.weeks[containingIdx].entries || {};
-        storage.weeks[containingIdx].entries[normalized] = Number(weightVal);
-        saveStorage(storage);
-        renderWeekData();
-        return;
-    }
-
-    if (!storage.weeks || storage.weeks.length === 0) {
-        const newWeek = { start: normalized, entries: {} };
-        newWeek.entries[normalized] = Number(weightVal);
-        insertWeekSorted(newWeek, storage);
-        saveStorage(storage);
-        renderWeekData();
-        return;
-    }
-
-    const firstStart = parseYMDToUTC(storage.weeks[0].start);
-    if (dt.getTime() < firstStart.getTime()) {
-        const newWeek = { start: normalized, entries: {} };
-        newWeek.entries[normalized] = Number(weightVal);
-        insertWeekSorted(newWeek, storage);
-        saveStorage(storage);
-        renderWeekData();
-        return;
-    }
-
-    for (let i=0;i<storage.weeks.length;i++) {
-        const w = storage.weeks[i];
-        const wStart = parseYMDToUTC(w.start);
-        const wEnd = addDaysUTC(wStart, 6);
-        if (dt.getTime() < wStart.getTime()) {
-            const prev = storage.weeks[i-1];
-            const prevEnd = addDaysUTC(parseYMDToUTC(prev.start), 6);
-            if (dt.getTime() > prevEnd.getTime()) {
-                const newWeek = { start: normalized, entries: {} };
-                newWeek.entries[normalized] = Number(weightVal);
-                insertWeekSorted(newWeek, storage);
-                saveStorage(storage);
-                renderWeekData();
-                return;
-            } else {
-                alert('This date falls into an unfinished period — it must be inside an existing week or after the previous week ended to start a new week.');
-                return;
-            }
-        }
-    }
-
-    const last = storage.weeks[storage.weeks.length - 1];
-    const lastEnd = addDaysUTC(parseYMDToUTC(last.start), 6);
-    if (dt.getTime() > lastEnd.getTime()) {
-        const newWeek = { start: normalized, entries: {} };
-        newWeek.entries[normalized] = Number(weightVal);
-        insertWeekSorted(newWeek, storage);
-        saveStorage(storage);
-        renderWeekData();
-        return;
-    }
-
-    alert('Could not place date into a week. Ensure it either falls into an existing week or is after the last week ended to start a new one.');
-}
-
-function renderWeekData() {
-    const storage = loadStorage();
-    storage.weeks = storage.weeks || [];
-    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
-    let currentWeek = null;
-    let previousWeek = null;
-
-    for (let i=0;i<storage.weeks.length;i++) {
-        const w = storage.weeks[i];
-        const s = parseYMDToUTC(w.start);
-        const e = addDaysUTC(s, 6);
-        if (today.getTime() >= s.getTime() && today.getTime() <= e.getTime()) {
-            currentWeek = { index:i, week:w };
-            if (i-1 >= 0) previousWeek = { index:i-1, week: storage.weeks[i-1] };
-            break;
-        }
-        if (today.getTime() > e.getTime()) {
-            previousWeek = { index:i, week:w };
-            continue;
-        }
-        if (today.getTime() < s.getTime()) {
-            break;
-        }
-    }
-
-    if (!currentWeek && storage.weeks.length > 0) {
-        const last = storage.weeks[storage.weeks.length - 1];
-        const lastEnd = addDaysUTC(parseYMDToUTC(last.start), 6);
-        if (today.getTime() > lastEnd.getTime()) {
-            previousWeek = { index: storage.weeks.length - 1, week: last };
-        }
-    }
-
-    const currEntries = currentWeek ? Object.entries(currentWeek.week.entries || {}).map(([d,w])=>({date:d, weight:Number(w)})) : [];
-    const prevEntries = previousWeek ? Object.entries(previousWeek.week.entries || {}).map(([d,w])=>({date:d, weight:Number(w)})) : [];
-
-    const currMedian = computeMedian(currEntries.map(x=>x.weight));
-    const prevMedian = computeMedian(prevEntries.map(x=>x.weight));
-
-    currentWeekMedianEl.textContent = currMedian === null ? '-' : currMedian.toFixed(2) + ' kg';
-    previousWeekMedianEl.textContent = prevMedian === null ? '-' : prevMedian.toFixed(2) + ' kg';
-
-    logList.innerHTML = '';
-    if (currentWeek) {
-        if (currEntries.length === 0) {
-            logList.innerHTML = '<div style="color:#9ca3af">No entries for the current 7-day block yet.</div>';
-        } else {
-            currEntries.sort((a,b)=> a.date > b.date ? 1 : -1).forEach(entry=>{
-                const row = document.createElement('div');
-                row.className = 'log-item';
-                row.innerHTML = `<div><strong>${entry.weight.toFixed(1)} kg</strong><br><small>${entry.date}</small></div>
-                                 <div style="display:flex; gap:8px;">
-                                   <button class="small-btn" data-copy="${entry.date}" type="button">Copy</button>
-                                   <button class="small-btn delete" data-delete="${entry.date}" type="button">Del</button>
-                                 </div>`;
-                logList.appendChild(row);
-            });
-            logList.querySelectorAll('[data-copy]').forEach(b=>{
-                b.addEventListener('click', ev=>{
-                    const date = ev.currentTarget.getAttribute('data-copy');
-                    const st = loadStorage();
-                    if (!st.weeks) return;
-                    for (const w of st.weeks) {
-                        if (w.entries && w.entries[date] !== undefined) {
-                            logDateInput.value = date;
-                            logWeightInput.value = Number(w.entries[date]).toFixed(1);
-                            return;
-                        }
-                    }
-                });
-            });
-            logList.querySelectorAll('[data-delete]').forEach(b=>{
-                b.addEventListener('click', ev=>{
-                    const date = ev.currentTarget.getAttribute('data-delete');
-                    if (!confirm('Delete this entry?')) return;
-                    deleteEntry(date);
-                });
-            });
-        }
-    } else {
-        logList.innerHTML = '<div style="color:#9ca3af">No active 7-day block started. Add a log dated after the previous block ends (or create the first block) to start a new week.</div>';
-    }
-}
-
-/* copy medians to calculator fields */
-copyCurrToCalcBtn.addEventListener('click', ()=>{
-    const storage = loadStorage();
-    let currIdx = -1;
-    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
-    for (let i=0;i<storage.weeks.length;i++) {
-        const s = parseYMDToUTC(storage.weeks[i].start);
-        const e = addDaysUTC(s,6);
-        if (today.getTime() >= s.getTime() && today.getTime() <= e.getTime()) { currIdx = i; break; }
-    }
-    if (currIdx === -1) { alert('No active current 7-day block available.'); return; }
-    const entries = Object.values(storage.weeks[currIdx].entries || {}).map(Number);
-    const med = computeMedian(entries);
-    if (med === null) { alert('No median yet'); return; }
-    document.getElementById('curr_weight').value = med.toFixed(1);
-    tabCalculator.click();
-});
-copyPrevToCalcBtn.addEventListener('click', ()=>{
-    const storage = loadStorage();
-    const today = (function(){ const t = new Date(); return new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate())); })();
-    let lastFinished = -1;
-    for (let i=0;i<storage.weeks.length;i++) {
-        const s = parseYMDToUTC(storage.weeks[i].start);
-        const e = addDaysUTC(s,6);
-        if (e.getTime() < today.getTime()) lastFinished = i;
-    }
-    if (lastFinished === -1) { alert('No previous finished week available'); return; }
-    const entries = Object.values(storage.weeks[lastFinished].entries || {}).map(Number);
-    const med = computeMedian(entries);
-    if (med === null) { alert('No median yet'); return; }
-    document.getElementById('prev_weight').value = med.toFixed(1);
-    tabCalculator.click();
-});
-
+/* --- Tab handlers / log handlers --- */
 addLogBtn.addEventListener('click', ()=> {
     addOrUpdateEntry(logDateInput.value, parseFloat(logWeightInput.value));
 });
