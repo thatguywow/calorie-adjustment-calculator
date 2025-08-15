@@ -242,7 +242,7 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
 
             <!-- New Info tab -->
             <div id="infoTab" style="display:none;">
-                <details class="info-box" id="infoBoxCalculator" open>
+                <details class="info-box" id="infoBoxCalculator">
                     <summary>
                         <h3><i class="fas fa-calculator"></i> How to Use the Calculator</h3>
                         <span class="chev"><i class="fas fa-chevron-down"></i></span>
@@ -274,7 +274,7 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
                     </div>
                 </details>
 
-                <details class="info-box" id="infoBoxWeightLog" open>
+                <details class="info-box" id="infoBoxWeightLog">
                     <summary>
                         <h3><i class="fas fa-list"></i> How to Use the Weight Log</h3>
                         <span class="chev"><i class="fas fa-chevron-down"></i></span>
@@ -325,7 +325,6 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
 const DAILY_FACTOR = 7700 / 7;
 const MIN_SAFE_CALORIES = 1200;
 const STORAGE_KEY = 'calorie_weight_weeks_v2';
-const INFO_OPEN_KEY = 'calc_info_open_v1';
 
 const goalSelect = document.getElementById('goal');
 const calculateBtn = document.getElementById('calculateBtn');
@@ -357,8 +356,6 @@ const currentWeekMedianEl = document.getElementById('currentWeekMedian');
 const previousWeekMedianEl = document.getElementById('previousWeekMedian');
 const copyCurrToCalcBtn = document.getElementById('copyCurrToCalc');
 const copyPrevToCalcBtn = document.getElementById('copyPrevToCalc');
-const infoBoxCalculator = document.getElementById('infoBoxCalculator');
-const infoBoxWeightLog = document.getElementById('infoBoxWeightLog');
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -844,22 +841,6 @@ function activateTab(tabId) {
 tabCalculator.addEventListener('click', () => activateTab('calculatorTab'));
 tabWeightLog.addEventListener('click', () => activateTab('weightLogTab'));
 tabInfo.addEventListener('click', () => activateTab('infoTab'));
-
-/* --- Persist infoBox open/closed state --- */
-infoBoxCalculator.addEventListener('toggle', ()=>{
-    try { localStorage.setItem(INFO_OPEN_KEY, infoBoxCalculator.open ? '1' : '0'); } catch(e) {}
-});
-(function restoreInfoOpen() {
-    try {
-        const v = localStorage.getItem(INFO_OPEN_KEY);
-        if (v === null) {
-            // first time: default open
-            infoBoxCalculator.open = true;
-        } else {
-            infoBoxCalculator.open = (v === '1');
-        }
-    } catch(e) { /* ignore storage errors */ }
-})();
 
 /* initialization */
 (function init() {
