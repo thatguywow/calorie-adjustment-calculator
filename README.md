@@ -25,5 +25,7 @@ Calorie Adjustment Calculator
 ​Technology:
 
 ​HTML
+
 ​CSS
+
 ​JavaScript (no external libraries)
