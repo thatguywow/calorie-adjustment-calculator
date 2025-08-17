@@ -50,6 +50,9 @@ details.info-box[open] summary .chev { transform:rotate(180deg); }
 select, input { width:100%; padding:14px; border:1px solid #3d3d3d; border-radius:8px; font-size:1rem; background:#252525; transition:all .2s; color:#e0e0e0; }
 select:focus, input:focus { border-color:#4b5bd1; outline:none; box-shadow:0 0 0 3px rgba(75,91,209,0.3); }
 
+/* Force the previous-week label to stay on one line */
+.form-group label[for="prev_weight"] { white-space:nowrap; }
+
 .buttons { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:25px; }
 button { padding:14px; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; transition:all .2s; display:flex; gap:8px; align-items:center; justify-content:center; }
 #calculateBtn { background:linear-gradient(to right,#22c55e 0%,#16a34a 100%); color:white; }
@@ -136,7 +139,7 @@ footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; borde
                 </div>
 
                 <div class="form-group">
-                    <label for="prev_weight"><i class="fas fa-weight-scale"></i> Previous Weekly Median (kg):</label>
+                    <label for="prev_weight"><i class="fas fa-weight-scale"></i> Previous Weekly Median Weight (kg):</label>
                     <input type="number" step="0.1" id="prev_weight" placeholder="e.g., 75.5">
                 </div>
 
@@ -670,7 +673,7 @@ function toggleGoalField() {
             if (prevInput) prevInput.placeholder = 'e.g., 73.5';
             if (currInput) currInput.placeholder = 'e.g., 74.0';
         } else {
-            prevLabel.innerHTML = '<i class="fas fa-weight-scale"></i> Previous Weekly Median (kg):';
+            prevLabel.innerHTML = '<i class="fas fa-weight-scale"></i> Previous Weekly Median Weight (kg):';
             if (prevInput) prevInput.placeholder = 'e.g., 75.5';
             if (currInput) currInput.placeholder = 'e.g., 74.8';
         }
