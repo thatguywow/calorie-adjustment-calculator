@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Calorie Adjustment Calculator Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
+        body { background:#2d2d2d; color:#e0e0e0; min-height:100vh; padding:40px 20px; display:flex; justify-content:center; align-items:flex-start; }
+        .container { background:#1f1f1f; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.3); width:100%; max-width:980px; overflow:hidden; }
+        .logo-header { background:linear-gradient(135deg,#4b5bd1 0%,#2a2e6b 100%); padding:30px 20px 20px; text-align:center; border-top-left-radius:12px; border-top-right-radius:12px; position:relative; overflow:visible; }
+        .logo-header::before { content:""; position:absolute; top:-10%; left:-10%; width:120%; height:120%; background:radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%); z-index:0; pointer-events:none; }
+        .logo { font-family:'Raleway',sans-serif; font-size:2.3rem; font-weight:800; color:transparent; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; background:linear-gradient(to right,#facc15 0%,#f97316 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; position:relative; z-index:2; }
+        .logo-subtitle { color:rgba(255,255,255,0.85); font-size:1rem; max-width:90%; margin:0 auto; line-height:1.6; font-weight:400; position:relative; z-index:2; }
+        .tab-bar { display:flex; gap:8px; justify-content:center; margin-top:16px; z-index:60; position:relative; pointer-events:auto; flex-wrap:wrap; }
+        .tab-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.04); padding:8px 14px; border-radius:8px; cursor:pointer; color:#e0e0e0; font-weight:600; transition:all .15s; position:relative; z-index:61; pointer-events:auto; -webkit-appearance:none; }
+        .tab-btn.active { background:rgba(255,255,255,0.12); box-shadow:0 4px 12px rgba(0,0,0,0.25); transform:translateY(-2px); }
+        .content { padding:38px 30px; }
+        .section-grid { display:grid; grid-template-columns:1.1fr 0.9fr; gap:18px; align-items:start; }
+        .panel { background:#2a2a2a; border:1px solid #3d3d3d; border-radius:10px; padding:18px; }
+        .panel h3 { color:#a3bffa; margin-bottom:12px; font-size:1.1rem; font-weight:700; display:flex; gap:10px; align-items:center; }
+        .panel p, .panel ul { color:#b0b0b0; line-height:1.8; font-size:0.95rem; }
+        .panel ul { padding-left:20px; }
+        .info-box { background:#2a2a2a; border-radius:10px; margin-bottom:18px; border-left:3px solid #4b5bd1; overflow:hidden; }
+        details.info-box summary { list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.03); }
+        details.info-box summary::-webkit-details-marker { display:none; }
+        details.info-box summary h3 { margin:0; color:#a3bffa; font-size:1.05rem; font-weight:700; display:flex; gap:10px; align-items:center; }
+        details.info-box summary .chev { transition:transform .18s ease; color:#cfe0ff; font-size:0.95rem; margin-left:8px; }
+        details.info-box[open] summary .chev { transform:rotate(180deg); }
+        .info-content { padding:16px 20px 20px; }
+        .form-group { margin-bottom:22px; }
+        .form-group label { display:block; margin-bottom:8px; font-weight:500; color:#d1d1d1; font-size:1rem; display:flex; gap:8px; align-items:center; }
+        select, input { width:100%; padding:14px; border:1px solid #3d3d3d; border-radius:8px; font-size:1rem; background:#252525; transition:all .2s; color:#e0e0e0; }
+        select:focus, input:focus { border-color:#4b5bd1; outline:none; box-shadow:0 0 0 3px rgba(75,91,209,0.3); }
+        .buttons { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px; }
+        button { padding:14px; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; transition:all .2s; display:flex; gap:8px; align-items:center; justify-content:center; }
+        #calculateBtn { background:linear-gradient(to right,#22c55e 0%,#16a34a 100%); color:white; }
+        #resetBtn { background:linear-gradient(to right,#ef4444 0%,#dc2626 100%); color:white; }
+        .small-btn { padding:10px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:700; color:#e0e0e0; background:rgba(255,255,255,0.05); }
+        .small-btn.delete { background:linear-gradient(to right,#ef4444,#dc2626); color:#fff; }
+        .median-btn { background:linear-gradient(to right,#2b6ef6,#235fd6); color:#fff; padding:12px 14px; border-radius:10px; border:none; font-weight:700; cursor:pointer; min-width:48%; flex:1; box-shadow:0 4px 12px rgba(43,110,246,0.18); }
+        .median-btn:hover, button:hover { transform:scale(1.03); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+        button:active { transform:scale(1); }
+        .results { background:#2a2a2a; border-radius:10px; padding:24px; margin-top:28px; display:none; border:1px solid #3d3d3d; }
+        .results h2 { text-align:center; margin-bottom:20px; color:#a3bffa; font-size:1.45rem; font-weight:600; display:flex; gap:10px; justify-content:center; }
+        .result-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+        .result-item { display:flex; justify-content:space-between; align-items:center; padding:14px 15px; border-radius:8px; background:#252525; transition:transform .2s; }
+        .result-item:hover { transform:translateY(-2px); }
+        .result-label { font-weight:500; color:#d1d1d1; display:flex; gap:8px; align-items:center; }
+        .result-value { font-size:2.2rem; font-weight:700; text-align:right; line-height:1.1; }
+        .positive { color:#22c55e; } .negative { color:#ef4444; }
+        .action-box { padding:18px; border-radius:8px; margin-top:18px; text-align:center; font-weight:500; font-size:1.05rem; display:none; }
+        .increase-action { background:#1f2f23; color:#22c55e; border:1px solid #4ade80; }
+        .decrease-action { background:#2f1f1f; color:#ef4444; border:1px solid #f87171; }
+        .maintenance-rate { margin-top:18px; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; }
+        .maintenance-rate input { width:150px; padding:10px; border-radius:8px; }
+        .maintenance-desc { margin-top:12px; text-align:center; color:#b0b0b0; font-size:0.92rem; line-height:1.6; }
+        .calorie-disclaimer { margin-top:16px; font-size:0.86rem; color:#f87171; background:#2f1f1f; border-left:3px solid #dc2626; padding:12px 15px; border-radius:8px; line-height:1.5; display:none; }
+        .coach-box { margin-top:16px; border-radius:10px; border:1px solid #3d3d3d; background:#20281f; padding:16px; }
+        .coach-box h3 { margin-bottom:10px; color:#86efac; font-size:1.05rem; display:flex; gap:10px; align-items:center; }
+        .coach-box p { line-height:1.7; color:#d1d5db; }
+        .history-card { margin-top:18px; background:#2a2a2a; border:1px solid #3d3d3d; border-radius:10px; padding:18px; }
+        .history-card h3 { color:#a3bffa; margin-bottom:12px; font-size:1.05rem; display:flex; gap:10px; align-items:center; }
+        .history-list { display:grid; gap:10px; max-height:300px; overflow:auto; }
+        .history-item { display:flex; justify-content:space-between; gap:10px; padding:12px; border-radius:8px; background:#252525; }
+        .history-item small { color:#9ca3af; }
+        .history-item strong { color:#fff; }
+        .chart-card { margin-top:18px; background:#2a2a2a; border-radius:10px; padding:18px; border:1px solid #3d3d3d; }
+        .chart-card h3 { color:#a3bffa; margin-bottom:12px; font-size:1.05rem; display:flex; gap:10px; align-items:center; }
+        .chart-wrap { position:relative; min-height:320px; }
+        canvas { width:100% !important; height:320px !important; }
+        .weight-log { background:#2a2a2a; border-radius:10px; padding:20px; border:1px solid #3d3d3d; }
+        .weight-log h3 { color:#a3bffa; margin-bottom:12px; }
+        .log-list { margin-top:12px; display:grid; gap:8px; max-height:320px; overflow:auto; }
+        .log-item { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px; background:#252525; border-radius:8px; }
+        .log-item small { color:#9ca3af; }
+        .medians-row { display:flex; gap:10px; margin-top:10px; }
+        .summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+        .summary-box { background:#252525; border-radius:10px; padding:14px; border:1px solid #3d3d3d; }
+        .summary-box .label { color:#9ca3af; font-size:0.88rem; margin-bottom:6px; }
+        .summary-box .value { font-weight:700; color:#fff; font-size:1.02rem; }
+        .note { color:#9ca3af; font-size:0.92rem; line-height:1.7; }
+
+        /* Minimal unit toggle – perfectly blended with the dark UI */
+        .unit-toggle {
+            display: inline-flex;
+            background: #252525;
+            border: 1px solid #3d3d3d;
+            border-radius: 9999px;
+            padding: 4px;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .unit-btn {
+            padding: 7px 22px;
+            border: none;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all .2s ease;
+            background: transparent;
+            color: #e0e0e0;
+        }
+        .unit-btn.active {
+            background: linear-gradient(to right, #4b5bd1, #2a2e6b);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(75,91,209,0.35);
+        }
+        .unit-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.08);
+        }
+
+        footer { text-align:center; padding:20px; color:#6b7280; font-size:0.9rem; border-top:1px solid #3d3d3d; background-color:#1f1f1f; }
+        @media (max-width: 860px) { .section-grid { grid-template-columns:1fr; } }
+        @media (max-width:480px) {
+            body { padding:20px; }
+            .logo { font-size:2rem; }
+            .content { padding:25px 15px; }
+            .medians-row { flex-direction:column; }
+            .median-btn { min-width:100%; }
+            .buttons { grid-template-columns:1fr; }
+            .summary-grid { grid-template-columns:1fr; }
+            .unit-toggle { padding:3px; }
+            .unit-btn { padding:6px 18px; font-size:0.9rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-header">
+            <div class="logo">Calorie Adjustment Calculator</div>
+            <p class="logo-subtitle">Precisely adjust your calorie intake based on weekly weight trends and track your progress over time</p>
+            <div class="tab-bar" role="tablist" aria-label="Main tabs">
+                <button id="tabCalculator" class="tab-btn active" role="tab" aria-selected="true" type="button">Calculator</button>
+                <button id="tabWeightLog" class="tab-btn" role="tab" aria-selected="false" type="button">Weight Log</button>
+                <button id="tabInfo" class="tab-btn" role="tab" aria-selected="false" type="button">Info</button>
+            </div>
+        </div>
+        <div class="content">
+            <!-- CALCULATOR TAB -->
+            <div id="calculatorTab">
+                <div class="section-grid">
+                    <div class="panel">
+                        <!-- Minimal unit toggle -->
+                        <div class="form-group">
+                            <label style="margin-bottom:6px;">Units</label>
+                            <div class="unit-toggle" id="unitToggle">
+                                <button id="unitKgBtn" class="unit-btn active" data-unit="kg" type="button">kg</button>
+                                <button id="unitLbsBtn" class="unit-btn" data-unit="lbs" type="button">lbs</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goal"><i class="fas fa-bullseye"></i> Goal Type:</label>
+                            <select id="goal" required>
+                                <option value="" disabled selected>Select your goal</option>
+                                <option value="loss">Weight Loss</option>
+                                <option value="gain">Weight Gain</option>
+                                <option value="maintenance">Weight Maintenance</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prev_weight" id="prevWeightLabel"><i class="fas fa-weight-scale"></i> Previous Weekly Median Weight (kg):</label>
+                            <input type="number" step="0.1" id="prev_weight" placeholder="e.g., 75.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="curr_weight" id="currWeightLabel"><i class="fas fa-weight-scale"></i> Current Weekly Median Weight (kg):</label>
+                            <input type="number" step="0.1" id="curr_weight" placeholder="e.g., 74.8">
+                        </div>
+
+                        <div class="form-group goal-field" id="goalField">
+                            <label for="weekly_goal" id="weeklyGoalLabel"><i class="fas fa-tachometer-alt"></i> Weekly Goal Amount (kg/week):</label>
+                            <input type="number" step="0.1" id="weekly_goal" placeholder="e.g., 0.5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="calories"><i class="fas fa-fire"></i> Current Daily Calories:</label>
+                            <input type="number" id="calories" placeholder="e.g., 2000">
+                        </div>
+
+                        <div class="buttons">
+                            <button id="calculateBtn" type="button"><i class="fas fa-calculator"></i> Calculate Adjustment</button>
+                            <button id="resetBtn" type="button"><i class="fas fa-redo"></i> Reset Form</button>
+                        </div>
+
+                        <div class="results" id="resultsSection">
+                            <h2><i class="fas fa-chart-line"></i> Your Calorie Adjustment</h2>
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <span class="result-label"><i class="fas fa-exchange-alt"></i> Daily Adjustment Needed:</span>
+                                    <span class="result-value" id="adjustment">-</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label"><i class="fas fa-burn"></i> Current Calories:</span>
+                                    <span class="result-value" id="current_calories">-</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label"><i class="fas fa-bullseye"></i> New Calorie Target:</span>
+                                    <span class="result-value" id="new_calories">-</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label"><i class="fas fa-shield-heart"></i> Estimated TDEE:</span>
+                                    <span class="result-value" id="tdee_estimate">-</span>
+                                </div>
+                            </div>
+
+                            <div style="text-align:center; margin:20px 0 10px;">
+                                <button id="copyTargetBtn" type="button" class="small-btn" style="background:linear-gradient(to right,#4b5bd1,#2a2e6b); color:#fff; padding:14px 32px; font-size:1.1rem; border-radius:50px;">
+                                    📋 Copy New Target
+                                </button>
+                            </div>
+
+                            <div id="maintenanceRateSection" style="display:none;">
+                                <div class="maintenance-desc" id="maintenanceRateDesc"></div>
+                                <div class="maintenance-rate">
+                                    <label for="maintenance_rate_input" id="maintenanceRateLabel">Weekly rate (kg/week):</label>
+                                    <input type="number" step="0.05" id="maintenance_rate_input" />
+                                    <button id="applyRateBtn" type="button">Apply Rate</button>
+                                </div>
+                            </div>
+
+                            <div class="coach-box" id="coachBox">
+                                <h3><i class="fas fa-user-doctor"></i> Coaching Mode</h3>
+                                <p id="coachText">Run a calculation to get goal-specific guidance.</p>
+                            </div>
+                            <div id="calorieDisclaimer" class="calorie-disclaimer" role="status" aria-live="polite" style="display:none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Suggested daily calories are below the commonly recommended minimum (1200 kcal/day). Consider choosing a smaller weekly rate or consult a healthcare professional.
+                            </div>
+                            <div class="action-box" id="actionBox">
+                                <span id="actionText"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3><i class="fas fa-clock-rotate-left"></i> Calorie History</h3>
+                        <div class="note">Every calculation is saved in your browser and can be reviewed later.</div>
+                        <div class="history-card" style="margin-top:14px;">
+                            <div class="history-list" id="calorieHistoryList"></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-area"></i> Calories & TDEE Over Time</h3>
+                            <div class="chart-wrap"><canvas id="calorieChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEIGHT LOG TAB -->
+            <div id="weightLogTab" style="display:none;">
+                <div class="section-grid">
+                    <div class="weight-log">
+                        <h3><i class="fas fa-list-alt"></i> Weekly Weight Log</h3>
+                        <div class="form-group">
+                            <label for="log_date">Add / Update Date:</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="date" id="log_date" style="flex:1;">
+                                <button id="setTodayBtn" type="button" class="small-btn"><i class="fas fa-calendar-day"></i> Today</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_weight" id="logWeightLabel"><i class="fas fa-weight-scale"></i> Weight (kg):</label>
+                            <input type="number" step="0.1" id="log_weight" placeholder="e.g., 75.2">
+                        </div>
+                        <div class="buttons">
+                            <button id="addLogBtn" type="button"><i class="fas fa-plus"></i> Add / Update Entry</button>
+                            <button id="clearWeekBtn" type="button" style="background: linear-gradient(to right, #ef4444 0%, #dc2626 100%); color:white;"><i class="fas fa-trash"></i> Clear Selected Week</button>
+                        </div>
+
+                        <div class="form-group" style="margin-top:16px;">
+                            <label for="lookup_date">View History For Date:</label>
+                            <input type="date" id="lookup_date">
+                        </div>
+
+                        <div class="summary-grid">
+                            <div class="summary-box">
+                                <div class="label">Selected Date Weight</div>
+                                <div class="value" id="selectedDateWeight">-</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="label">Selected Week Median</div>
+                                <div class="value" id="selectedWeekMedian">-</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="label">Previous Week Median</div>
+                                <div class="value" id="previousWeekMedian">-</div>
+                            </div>
+                            <div class="summary-box">
+                                <div class="label">Entries in Selected Week</div>
+                                <div class="value" id="selectedWeekCount">-</div>
+                            </div>
+                        </div>
+
+                        <div class="medians-row">
+                            <button class="median-btn" id="copySelectedMedianToCalc" type="button">Use selected median</button>
+                            <button class="median-btn" id="copyPrevToCalc" type="button">Use previous median</button>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-line"></i> Weight Progress</h3>
+                            <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+                        </div>
+
+                        <div class="history-card">
+                            <h3><i class="fas fa-list"></i> All Saved Weights</h3>
+                            <div class="log-list" id="logList"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3><i class="fas fa-circle-info"></i> Selected Week Summary</h3>
+                        <p class="note" id="weekSummaryNote">Choose a date to inspect the saved entry, its weekly block, and the medians around it.</p>
+                        <div class="history-card" style="margin-top:14px;">
+                            <h3><i class="fas fa-calendar-week"></i> Entries in This Week</h3>
+                            <div class="log-list" id="weekEntriesList"></div>
+                        </div>
+                        <div class="coach-box">
+                            <h3><i class="fas fa-wand-magic-sparkles"></i> Smart Prompt</h3>
+                            <p id="weightCoachText">Use a saved date to jump back to that point in your journey.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INFO TAB -->
+            <div id="infoTab" style="display:none;">
+                <details class="info-box" id="infoBoxCalculator">
+                    <summary>
+                        <h3><i class="fas fa-calculator"></i> How to Use the Calculator</h3>
+                        <span class="chev"><i class="fas fa-chevron-down"></i></span>
+                    </summary>
+                    <div class="info-content">
+                        <p>This tool adjusts your daily calorie intake based on weekly weight trends, then stores every result in your browser for later review.</p>
+                        <h3><i class="fas fa-weight-scale"></i> Weekly Median Weight</h3>
+                        <ul>
+                            <li>Weigh yourself at the same time each day for a week.</li>
+                            <li>Log each weigh-in in the Weight Log tab.</li>
+                            <li>The app groups entries into 7-day blocks and calculates the true median.</li>
+                        </ul>
+                        <h3><i class="fas fa-chart-line"></i> Using the Calculator</h3>
+                        <ul>
+                            <li>Select your goal type.</li>
+                            <li>Enter the previous and current weekly medians.</li>
+                            <li>Set your weekly target rate for loss or gain.</li>
+                            <li>Enter your current calories and calculate the update.</li>
+                        </ul>
+                        <h3><i class="fas fa-user-doctor"></i> Coaching Mode</h3>
+                        <ul>
+                            <li>Shows a practical next step based on your goal and trend.</li>
+                            <li>Highlights aggressive cuts that may be too hard to sustain.</li>
+                            <li>Estimates your TDEE from the trend you entered.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="info-box" id="infoBoxWeightLog">
+                    <summary>
+                        <h3><i class="fas fa-list"></i> How to Use the Weight Log</h3>
+                        <span class="chev"><i class="fas fa-chevron-down"></i></span>
+                    </summary>
+                    <div class="info-content">
+                        <p>The Weight Log keeps every entry in browser storage so you can revisit any date later.</p>
+                        <h3><i class="fas fa-plus-circle"></i> Saving Entries</h3>
+                        <ul>
+                            <li>Select a date and enter your weight.</li>
+                            <li>Use the same date again to update that entry.</li>
+                            <li>All entries stay saved in localStorage unless you delete them.</li>
+                        </ul>
+                        <h3><i class="fas fa-calendar-day"></i> Looking Back</h3>
+                        <ul>
+                            <li>Pick any saved date in the history lookup field.</li>
+                            <li>See that exact weight, the weekly median, and the previous week median.</li>
+                            <li>Copy either median into the calculator with one click.</li>
+                        </ul>
+                        <h3><i class="fas fa-chart-simple"></i> Graphs</h3>
+                        <ul>
+                            <li>The weight chart shows daily weights and weekly medians.</li>
+                            <li>The calorie chart keeps a history of your past adjustments.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="info-box" id="infoBoxMath">
+                    <summary>
+                        <h3><i class="fas fa-flask"></i> How the Math Works</h3>
+                        <span class="chev"><i class="fas fa-chevron-down"></i></span>
+                    </summary>
+                    <div class="info-content">
+                        <p>This tool uses the scientifically accepted energy equivalent of body-fat change:</p>
+                        <ul>
+                            <li><strong>1 kg ≈ 7700 kcal</strong></li>
+                            <li><strong>1 lb ≈ 3500 kcal</strong></li>
+                        </ul>
+                        <p><strong>Core formula (loss/gain):</strong><br>
+                        Daily adjustment = (Actual weekly median change − Your target weekly change) × daily factor</p>
+                        <p>Daily factor = 1100 kcal (kg) or 500 kcal (lbs).</p>
+                        <p><strong>TDEE estimate</strong> = Current calories − (Current median − Previous median) × daily factor</p>
+                        <p>All math runs internally in kilograms for accuracy. Your chosen unit only affects display and input.</p>
+                        <p class="note">This is why the calculator is far more accurate than generic TDEE formulas — it reacts to your real weekly trend.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+        <footer>
+            <p>Calorie Adjustment Calculator &copy; <span id="year"></span> | Precision Nutrition Tool</p>
+        </footer>
+    </div>
+
+    <script>
+        // ==================== CONFIG & HELPERS ====================
+        let currentUnit = 'kg';
+        const KG_TO_LBS = 2.20462;
+        const KCAL_PER_KG = 7700;
+        const KCAL_PER_LB = 3500;
+        const MIN_SAFE_CALORIES = 1200;
+        const STORAGE_KEY = 'calorie_adjustment_calculator_pro_v1';
+        const MAX_CAL_HISTORY = 20;
+
+        function toInternalKg(value, unit) {
+            if (!value || isNaN(value)) return 0;
+            return unit === 'kg' ? Number(value) : Number(value) / KG_TO_LBS;
+        }
+
+        function fromInternalKg(value, unit) {
+            if (!value || isNaN(value)) return 0;
+            return unit === 'kg' ? Number(value) : Number(value) * KG_TO_LBS;
+        }
+
+        function getDailyFactor() {
+            return KCAL_PER_KG / 7;
+        }
+
+        // ==================== DOM REFERENCES (declared safely) ====================
+        let unitKgBtn, unitLbsBtn, goalSelect, calculateBtn, resetBtn, resultsSection, adjustmentEl,
+            currentCaloriesEl, newCaloriesEl, tdeeEstimateEl, actionBox, actionText,
+            maintenanceRateSection, maintenanceRateDesc, maintenanceRateInput, applyRateBtn,
+            calorieDisclaimer, coachText, tabCalculator, tabWeightLog, tabInfo,
+            calculatorTab, weightLogTab, infoTab, logDateInput, logWeightInput, lookupDateInput,
+            addLogBtn, clearWeekBtn, setTodayBtn, logList, weekEntriesList, selectedDateWeightEl,
+            currentWeekMedianEl, previousWeekMedianEl, selectedWeekCountEl, weekSummaryNote,
+            weightCoachText, copySelectedMedianToCalcBtn, copyPrevToCalcBtn,
+            calorieHistoryListEl, copyTargetBtn;
+
+        let weightChart = null;
+        let calorieChart = null;
+        let lastCalculationId = null;
+
+        // ==================== DATA PERSISTENCE ====================
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return { weightsByDate: {}, calorieHistory: [] };
+                const parsed = JSON.parse(raw);
+                return {
+                    weightsByDate: parsed.weightsByDate || {},
+                    calorieHistory: Array.isArray(parsed.calorieHistory) ? parsed.calorieHistory : []
+                };
+            } catch (e) {
+                return { weightsByDate: {}, calorieHistory: [] };
+            }
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // ==================== DATE & MEDIAN HELPERS ====================
+        function computeMedian(arr) {
+            if (!arr || arr.length === 0) return null;
+            const numeric = arr.map(x => Number(x)).filter(x => !isNaN(x));
+            if (numeric.length === 0) return null;
+            numeric.sort((a, b) => a - b);
+            const mid = Math.floor(numeric.length / 2);
+            return numeric.length % 2 === 1 ? numeric[mid] : (numeric[mid - 1] + numeric[mid]) / 2;
+        }
+
+        function parseYMDToUTC(dateStr) {
+            if (!dateStr) return null;
+            const p = dateStr.split('-').map(Number);
+            if (p.length !== 3 || p.some(isNaN)) return null;
+            return new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+        }
+
+        function formatUTCToYMD(d) {
+            const y = d.getUTCFullYear();
+            const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(d.getUTCDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function addDaysUTC(d, days) {
+            const r = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+            r.setUTCDate(r.getUTCDate() + days);
+            return r;
+        }
+
+        function getSortedEntries() {
+            const data = loadData();
+            return Object.entries(data.weightsByDate)
+                .map(([date, weight]) => ({ date, weight: Number(weight) }))
+                .filter(entry => entry.date && !isNaN(entry.weight))
+                .sort((a, b) => a.date.localeCompare(b.date));
+        }
+
+        function buildWeekBlocks(entries) {
+            if (!entries.length) return [];
+            const first = parseYMDToUTC(entries[0].date);
+            const blocks = [];
+            const byIndex = new Map();
+            const dayMs = 24 * 60 * 60 * 1000;
+            for (const entry of entries) {
+                const dt = parseYMDToUTC(entry.date);
+                if (!dt) continue;
+                const diffDays = Math.floor((dt.getTime() - first.getTime()) / dayMs);
+                const blockIndex = Math.max(0, Math.floor(diffDays / 7));
+                if (!byIndex.has(blockIndex)) {
+                    const start = addDaysUTC(first, blockIndex * 7);
+                    byIndex.set(blockIndex, { index: blockIndex, start: formatUTCToYMD(start), entries: [] });
+                }
+                byIndex.get(blockIndex).entries.push(entry);
+            }
+            [...byIndex.values()].sort((a, b) => a.index - b.index).forEach(block => {
+                const median = computeMedian(block.entries.map(x => x.weight));
+                const startUtc = parseYMDToUTC(block.start);
+                const end = addDaysUTC(startUtc, 6);
+                blocks.push({
+                    ...block,
+                    end: formatUTCToYMD(end),
+                    median: median === null ? null : Number(median)
+                });
+            });
+            return blocks;
+        }
+
+        function findBlockForDate(dateStr, entries) {
+            if (!dateStr || !entries.length) return null;
+            const dt = parseYMDToUTC(dateStr);
+            const first = parseYMDToUTC(entries[0].date);
+            if (!dt || !first) return null;
+            if (dt.getTime() < first.getTime()) return null;
+            const dayMs = 24 * 60 * 60 * 1000;
+            const diffDays = Math.floor((dt.getTime() - first.getTime()) / dayMs);
+            const blockIndex = Math.max(0, Math.floor(diffDays / 7));
+            const start = addDaysUTC(first, blockIndex * 7);
+            const end = addDaysUTC(start, 6);
+            const blockEntries = entries.filter(entry => {
+                const e = parseYMDToUTC(entry.date);
+                return e && e.getTime() >= start.getTime() && e.getTime() <= end.getTime();
+            });
+            const median = computeMedian(blockEntries.map(x => x.weight));
+            return {
+                index: blockIndex,
+                start: formatUTCToYMD(start),
+                end: formatUTCToYMD(end),
+                entries: blockEntries,
+                median: median === null ? null : Number(median)
+            };
+        }
+
+        function getPreviousBlock(block, entries) {
+            if (!block || !entries.length) return null;
+            const first = parseYMDToUTC(entries[0].date);
+            const start = parseYMDToUTC(block.start);
+            if (!first || !start) return null;
+            const prevStart = addDaysUTC(start, -7);
+            if (prevStart.getTime() < first.getTime()) return null;
+            const prevEnd = addDaysUTC(prevStart, 6);
+            const prevEntries = entries.filter(entry => {
+                const e = parseYMDToUTC(entry.date);
+                return e && e.getTime() >= prevStart.getTime() && e.getTime() <= prevEnd.getTime();
+            });
+            const median = computeMedian(prevEntries.map(x => x.weight));
+            return {
+                start: formatUTCToYMD(prevStart),
+                end: formatUTCToYMD(prevEnd),
+                entries: prevEntries,
+                median: median === null ? null : Number(median)
+            };
+        }
+
+        // ==================== UNIT MANAGEMENT & PLACEHOLDERS ====================
+        function updateUnitLabels() {
+            const isMaintenance = goalSelect ? goalSelect.value === 'maintenance' : false;
+            const prevLabel = document.getElementById('prevWeightLabel');
+            if (prevLabel) {
+                const base = isMaintenance ? 'Goal Maintenance Weight' : 'Previous Weekly Median Weight';
+                prevLabel.innerHTML = `<i class="fas fa-weight-scale"></i> ${base} (${currentUnit}):`;
+            }
+            const currLabel = document.getElementById('currWeightLabel');
+            if (currLabel) currLabel.innerHTML = `<i class="fas fa-weight-scale"></i> Current Weekly Median Weight (${currentUnit}):`;
+            const weeklyLabel = document.getElementById('weeklyGoalLabel');
+            if (weeklyLabel) weeklyLabel.innerHTML = `<i class="fas fa-tachometer-alt"></i> Weekly Goal Amount (${currentUnit}/week):`;
+            const logLabel = document.getElementById('logWeightLabel');
+            if (logLabel) logLabel.innerHTML = `<i class="fas fa-weight-scale"></i> Weight (${currentUnit}):`;
+            const rateLabel = document.getElementById('maintenanceRateLabel');
+            if (rateLabel) rateLabel.textContent = `Weekly rate (${currentUnit}/week):`;
+        }
+
+        function updatePlaceholders() {
+            const prevEl = document.getElementById('prev_weight');
+            const currEl = document.getElementById('curr_weight');
+            const weeklyEl = document.getElementById('weekly_goal');
+            const logEl = document.getElementById('log_weight');
+
+            if (currentUnit === 'kg') {
+                if (prevEl) prevEl.placeholder = 'e.g., 75.5';
+                if (currEl) currEl.placeholder = 'e.g., 74.8';
+                if (weeklyEl) weeklyEl.placeholder = 'e.g., 0.5';
+                if (logEl) logEl.placeholder = 'e.g., 75.2';
+            } else {
+                if (prevEl) prevEl.placeholder = 'e.g., 166.5';
+                if (currEl) currEl.placeholder = 'e.g., 165.0';
+                if (weeklyEl) weeklyEl.placeholder = 'e.g., 1.0';
+                if (logEl) logEl.placeholder = 'e.g., 165.8';
+            }
+        }
+
+        function switchUnit(newUnit) {
+            if (newUnit === currentUnit) return;
+            const oldUnit = currentUnit;
+            currentUnit = newUnit;
+
+            // Convert visible input values
+            const inputs = ['prev_weight', 'curr_weight', 'weekly_goal', 'log_weight'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value) {
+                    const val = parseFloat(el.value);
+                    if (!isNaN(val)) {
+                        const internal = toInternalKg(val, oldUnit);
+                        el.value = fromInternalKg(internal, newUnit).toFixed(id === 'weekly_goal' ? 2 : 1);
+                    }
+                }
+            });
+
+            // Convert maintenance rate if visible
+            if (maintenanceRateInput && maintenanceRateInput.value) {
+                const val = parseFloat(maintenanceRateInput.value);
+                if (!isNaN(val)) {
+                    const internal = toInternalKg(val, oldUnit);
+                    maintenanceRateInput.value = fromInternalKg(internal, newUnit).toFixed(2);
+                }
+            }
+
+            // Safe classList toggle (this fixes the runtime error)
+            if (unitKgBtn) unitKgBtn.classList.toggle('active', currentUnit === 'kg');
+            if (unitLbsBtn) unitLbsBtn.classList.toggle('active', currentUnit === 'lbs');
+
+            updateUnitLabels();
+            updatePlaceholders();
+            renderEverything();
+
+            if (resultsSection && resultsSection.style.display !== 'none') calculate();
+        }
+
+        // ==================== COACHING TEXT ====================
+        function getCoachText(goal, caloriesCurrent, rawNewCalories, adjustment, tdee, weeklyGoalDisplay, prevWeightDisplay, currWeightDisplay) {
+            const delta = goal === 'loss' ? prevWeightDisplay - currWeightDisplay : currWeightDisplay - prevWeightDisplay;
+            const absAdj = Math.abs(adjustment);
+            let advice = '';
+
+            if (goal === 'loss') {
+                advice = `Keep protein high and keep training performance in mind. Your observed change was ${delta.toFixed(2)} ${currentUnit} over the week.`;
+                if (absAdj > 750) advice += ' This deficit looks aggressive; consider a smaller weekly target to better protect muscle.';
+            } else if (goal === 'gain') {
+                advice = `Use the surplus to support progressive overload and recovery. Your observed change was ${delta.toFixed(2)} ${currentUnit} over the week.`;
+                if (absAdj > 750) advice += ' This surplus is quite large; a smaller surplus is often easier to control.';
+            } else {
+                advice = `You are calibrating toward a stable intake around your goal weight.`;
+            }
+            advice += ` Estimated TDEE from this trend: ${Math.round(tdee)} kcal/day.`;
+            if (rawNewCalories < MIN_SAFE_CALORIES) {
+                advice += ' The suggested target is below the safety line, so a gentler adjustment is usually the better move.';
+            }
+            return advice;
+        }
+
+        // ==================== CHARTS ====================
+        function renderWeightChart() {
+            const entries = getSortedEntries();
+            const labels = entries.map(entry => entry.date);
+            const displayWeights = entries.map(entry => fromInternalKg(entry.weight, currentUnit));
+            const blocks = buildWeekBlocks(entries);
+            const medianSeries = labels.map(() => null);
+
+            blocks.forEach(block => {
+                if (!block.entries.length || block.median === null) return;
+                const markerDate = block.entries[block.entries.length - 1].date;
+                const idx = labels.indexOf(markerDate);
+                if (idx >= 0) medianSeries[idx] = fromInternalKg(block.median, currentUnit);
+            });
+
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            if (weightChart) weightChart.destroy();
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Daily Weight', data: displayWeights, borderColor: '#a3bffa', backgroundColor: 'rgba(163,191,250,0.14)', tension: 0.25, spanGaps: false, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2 },
+                        { label: 'Weekly Median', data: medianSeries, borderColor: '#facc15', backgroundColor: 'rgba(250,204,21,0.12)', tension: 0, spanGaps: true, pointRadius: 4, pointHoverRadius: 6, borderDash: [6, 5], borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#e0e0e0' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === 'Weekly Median' && context.raw === null) return '';
+                                    return `${context.dataset.label}: ${Number(context.raw).toFixed(2)} ${currentUnit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#b0b0b0', maxRotation: 45, minRotation: 45 }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                        y: { ticks: { color: '#b0b0b0' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                    }
+                }
+            });
+        }
+
+        function renderCalorieChart() {
+            const data = loadData();
+            const history = [...data.calorieHistory].sort((a, b) => a.ts.localeCompare(b.ts));
+            const labels = history.map(item => (item.ts || '').slice(0, 10));
+            const targetSeries = history.map(item => Number(item.newCalories));
+            const tdeeSeries = history.map(item => Number(item.tdeeEstimate));
+
+            const ctx = document.getElementById('calorieChart').getContext('2d');
+            if (calorieChart) calorieChart.destroy();
+            calorieChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'New Calorie Target', data: targetSeries, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.12)', tension: 0.25, pointRadius: 3, borderWidth: 2 },
+                        { label: 'Estimated TDEE', data: tdeeSeries, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.12)', tension: 0.25, pointRadius: 3, borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#e0e0e0' } } },
+                    scales: {
+                        x: { ticks: { color: '#b0b0b0', maxRotation: 45, minRotation: 45 }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                        y: { ticks: { color: '#b0b0b0' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                    }
+                }
+            });
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderCalorieHistory() {
+            const data = loadData();
+            const history = [...data.calorieHistory].sort((a, b) => b.ts.localeCompare(a.ts));
+            calorieHistoryListEl.innerHTML = '';
+            if (history.length === 0) {
+                calorieHistoryListEl.innerHTML = '<div class="note">No calorie calculations saved yet.</div>';
+                return;
+            }
+            history.slice(0, 10).forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'history-item';
+                row.innerHTML = `
+                    <div>
+                        <strong>${item.goalLabel || item.goal}</strong><br>
+                        <small>${(item.ts || '').replace('T', ' ').slice(0, 16)}</small><br>
+                        <small>Target: ${Number(item.newCalories).toFixed(0)} kcal | TDEE: ${Number(item.tdeeEstimate).toFixed(0)} kcal</small>
+                    </div>
+                    <div style="text-align:right">
+                        <small>${Number(item.adjustment) >= 0 ? '+' : ''}${Number(item.adjustment).toFixed(0)} kcal</small><br>
+                        <small>${item.note || ''}</small>
+                    </div>
+                `;
+                calorieHistoryListEl.appendChild(row);
+            });
+        }
+
+        function renderAllHistoryList() {
+            const entries = getSortedEntries();
+            logList.innerHTML = '';
+            if (entries.length === 0) {
+                logList.innerHTML = '<div class="note">No entries saved yet. Start with today’s weigh-in.</div>';
+                return;
+            }
+            [...entries].reverse().forEach(entry => {
+                const displayWeight = fromInternalKg(entry.weight, currentUnit).toFixed(1);
+                const row = document.createElement('div');
+                row.className = 'log-item';
+                row.innerHTML = `
+                    <div><strong>${displayWeight} ${currentUnit}</strong><br><small>${entry.date}</small></div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="small-btn" data-copy="${entry.date}" type="button">Copy</button>
+                        <button class="small-btn delete" data-delete="${entry.date}" type="button">Del</button>
+                    </div>
+                `;
+                logList.appendChild(row);
+            });
+
+            logList.querySelectorAll('[data-copy]').forEach(button => {
+                button.addEventListener('click', ev => {
+                    const date = ev.currentTarget.getAttribute('data-copy');
+                    const data = loadData();
+                    const weightKg = data.weightsByDate[date];
+                    if (weightKg !== undefined) {
+                        lookupDateInput.value = date;
+                        logDateInput.value = date;
+                        logWeightInput.value = fromInternalKg(Number(weightKg), currentUnit).toFixed(1);
+                        renderLookupView(date);
+                    }
+                });
+            });
+
+            logList.querySelectorAll('[data-delete]').forEach(button => {
+                button.addEventListener('click', ev => {
+                    const date = ev.currentTarget.getAttribute('data-delete');
+                    if (!confirm('Delete this entry?')) return;
+                    deleteEntry(date);
+                });
+            });
+        }
+
+        function renderLookupView(dateStr) {
+            const entries = getSortedEntries();
+            if (!entries.length) {
+                if (selectedDateWeightEl) selectedDateWeightEl.textContent = '-';
+                if (currentWeekMedianEl) currentWeekMedianEl.textContent = '-';
+                if (previousWeekMedianEl) previousWeekMedianEl.textContent = '-';
+                if (selectedWeekCountEl) selectedWeekCountEl.textContent = '-';
+                if (weekEntriesList) weekEntriesList.innerHTML = '<div class="note">No entries saved yet.</div>';
+                return;
+            }
+
+            const selected = dateStr || (lookupDateInput ? lookupDateInput.value : '') || entries[entries.length - 1].date;
+            const data = loadData();
+            const exactWeightKg = data.weightsByDate[selected];
+            const block = findBlockForDate(selected, entries);
+
+            if (!block) {
+                if (selectedDateWeightEl) selectedDateWeightEl.textContent = exactWeightKg !== undefined ? `${fromInternalKg(Number(exactWeightKg), currentUnit).toFixed(1)} ${currentUnit}` : '-';
+                if (currentWeekMedianEl) currentWeekMedianEl.textContent = '-';
+                if (previousWeekMedianEl) previousWeekMedianEl.textContent = '-';
+                if (selectedWeekCountEl) selectedWeekCountEl.textContent = '-';
+                if (weekEntriesList) weekEntriesList.innerHTML = '<div class="note">No matching week block.</div>';
+                return;
+            }
+
+            const prev = getPreviousBlock(block, entries);
+            if (selectedDateWeightEl) selectedDateWeightEl.textContent = exactWeightKg !== undefined ? `${fromInternalKg(Number(exactWeightKg), currentUnit).toFixed(1)} ${currentUnit}` : 'Not logged';
+            if (currentWeekMedianEl) currentWeekMedianEl.textContent = block.median === null ? '-' : `${fromInternalKg(block.median, currentUnit).toFixed(2)} ${currentUnit}`;
+            if (previousWeekMedianEl) previousWeekMedianEl.textContent = prev && prev.median !== null ? `${fromInternalKg(prev.median, currentUnit).toFixed(2)} ${currentUnit}` : '-';
+            if (selectedWeekCountEl) selectedWeekCountEl.textContent = `${block.entries.length}`;
+
+            if (weekSummaryNote) weekSummaryNote.textContent = `Selected block: ${block.start} → ${block.end}.`;
+
+            if (weekEntriesList) {
+                weekEntriesList.innerHTML = '';
+                block.entries.forEach(entry => {
+                    const displayW = fromInternalKg(entry.weight, currentUnit).toFixed(1);
+                    const row = document.createElement('div');
+                    row.className = 'log-item';
+                    row.innerHTML = `<div><strong>${displayW} ${currentUnit}</strong><br><small>${entry.date}</small></div><div><button class="small-btn" data-copy-week="${entry.date}" type="button">Copy</button></div>`;
+                    weekEntriesList.appendChild(row);
+                });
+
+                weekEntriesList.querySelectorAll('[data-copy-week]').forEach(button => {
+                    button.addEventListener('click', ev => {
+                        const date = ev.currentTarget.getAttribute('data-copy-week');
+                        const weightKg = data.weightsByDate[date];
+                        if (weightKg !== undefined) {
+                            logDateInput.value = date;
+                            logWeightInput.value = fromInternalKg(Number(weightKg), currentUnit).toFixed(1);
+                        }
+                    });
+                });
+            }
+
+            const coachParts = [];
+            coachParts.push(`Viewing ${selected}. This block has ${block.entries.length} logged weigh-ins.`);
+            if (exactWeightKg !== undefined) coachParts.push(`Exact saved weight: ${fromInternalKg(Number(exactWeightKg), currentUnit).toFixed(1)} ${currentUnit}.`);
+            if (block.median !== null) coachParts.push(`Block median: ${fromInternalKg(block.median, currentUnit).toFixed(2)} ${currentUnit}.`);
+            if (prev && prev.median !== null) coachParts.push(`Previous block median: ${fromInternalKg(prev.median, currentUnit).toFixed(2)} ${currentUnit}.`);
+            if (weightCoachText) weightCoachText.textContent = coachParts.join(' ');
+        }
+
+        // ==================== WEIGHT LOG CRUD ====================
+        function addOrUpdateEntry(dateStr, weightDisplay) {
+            if (!dateStr) return;
+            const weightKg = toInternalKg(weightDisplay, currentUnit);
+            if (isNaN(weightKg) || weightKg <= 0) return;
+
+            const data = loadData();
+            data.weightsByDate[dateStr] = weightKg;
+            saveData(data);
+            renderEverything();
+            if (lookupDateInput) lookupDateInput.value = dateStr;
+            renderLookupView(dateStr);
+        }
+
+        function deleteEntry(dateStr) {
+            const data = loadData();
+            delete data.weightsByDate[dateStr];
+            saveData(data);
+            renderEverything();
+            renderLookupView(lookupDateInput ? lookupDateInput.value : '');
+        }
+
+        function clearSelectedWeek() {
+            const entries = getSortedEntries();
+            const selected = lookupDateInput ? lookupDateInput.value : (logDateInput ? logDateInput.value : '');
+            if (!selected) return;
+            const block = findBlockForDate(selected, entries);
+            if (!block) return;
+            if (!confirm(`Clear all entries from ${block.start} to ${block.end}?`)) return;
+
+            const data = loadData();
+            block.entries.forEach(entry => delete data.weightsByDate[entry.date]);
+            saveData(data);
+            renderEverything();
+            renderLookupView(selected);
+        }
+
+        // ==================== CALCULATION CORE ====================
+        function displayResultsFromRaw(goalLabel, caloriesCurrent, rawNewCalories, adjustment, tdeeEstimate, coachMessage) {
+            const newCalories = Math.max(0, rawNewCalories);
+            const displayedAdjustment = newCalories - caloriesCurrent;
+            const sign = displayedAdjustment >= 0 ? '+' : '';
+
+            if (adjustmentEl) {
+                adjustmentEl.textContent = `${sign}${Math.abs(displayedAdjustment).toFixed(0)} calories`;
+                adjustmentEl.className = displayedAdjustment >= 0 ? 'result-value positive' : 'result-value negative';
+            }
+            if (currentCaloriesEl) currentCaloriesEl.textContent = `${caloriesCurrent.toFixed(0)} calories`;
+            if (newCaloriesEl) newCaloriesEl.textContent = `${newCalories.toFixed(0)} calories`;
+            if (tdeeEstimateEl) tdeeEstimateEl.textContent = `${Math.round(tdeeEstimate)} calories`;
+
+            const action = displayedAdjustment >= 0
+                ? `INCREASE your daily intake by ${Math.abs(displayedAdjustment).toFixed(0)} calories`
+                : `DECREASE your daily intake by ${Math.abs(displayedAdjustment).toFixed(0)} calories`;
+            if (actionText) actionText.textContent = action;
+            if (actionBox) {
+                actionBox.className = displayedAdjustment >= 0 ? 'action-box increase-action' : 'action-box decrease-action';
+                actionBox.style.display = 'block';
+            }
+
+            if (coachText) coachText.textContent = coachMessage;
+            if (calorieDisclaimer) calorieDisclaimer.style.display = newCalories < MIN_SAFE_CALORIES ? 'block' : 'none';
+
+            const now = new Date();
+            const entry = {
+                id: Date.now(),
+                ts: now.toISOString(),
+                goal: goalSelect ? goalSelect.value : '',
+                goalLabel,
+                currentCalories: Number(caloriesCurrent),
+                newCalories: Number(newCalories),
+                adjustment: Number(displayedAdjustment),
+                tdeeEstimate: Number(tdeeEstimate),
+                note: (goalSelect && goalSelect.value === 'maintenance') ? 'Maintenance mode' : 'Adjusted'
+            };
+
+            const data = loadData();
+            if (lastCalculationId !== null) {
+                const idx = data.calorieHistory.findIndex(item => item.id === lastCalculationId);
+                if (idx !== -1) data.calorieHistory[idx] = entry;
+                else data.calorieHistory.unshift(entry);
+            } else {
+                data.calorieHistory.unshift(entry);
+            }
+            data.calorieHistory = data.calorieHistory.slice(0, MAX_CAL_HISTORY);
+            saveData(data);
+            lastCalculationId = entry.id;
+
+            renderCalorieHistory();
+            renderCalorieChart();
+        }
+
+        function calculate() {
+            try {
+                const goal = goalSelect ? goalSelect.value : '';
+                const prevWeightDisplay = parseFloat(document.getElementById('prev_weight').value);
+                const currWeightDisplay = parseFloat(document.getElementById('curr_weight').value);
+                const calories = parseFloat(document.getElementById('calories').value);
+
+                if (!goal || isNaN(currWeightDisplay) || isNaN(calories)) return;
+
+                const goalLabel = goal === 'loss' ? 'Weight Loss' : goal === 'gain' ? 'Weight Gain' : 'Weight Maintenance';
+                const prevKg = toInternalKg(prevWeightDisplay, currentUnit);
+                const currKg = toInternalKg(currWeightDisplay, currentUnit);
+                const dailyFactor = getDailyFactor();
+
+                let rawNewCalories = calories;
+                let rawAdjustmentKcal = 0;
+                let tdeeEstimate = calories;
+                let coachMessage = '';
+
+                if (goal !== 'maintenance') {
+                    if (isNaN(prevWeightDisplay)) return;
+                    const weeklyGoalDisplay = parseFloat(document.getElementById('weekly_goal').value);
+                    if (isNaN(weeklyGoalDisplay)) return;
+
+                    const weeklyGoalKg = toInternalKg(weeklyGoalDisplay, currentUnit);
+
+                    if (goal === 'loss') {
+                        const actualChangeKg = prevKg - currKg;
+                        rawAdjustmentKcal = (actualChangeKg - weeklyGoalKg) * dailyFactor;
+                    } else {
+                        const actualChangeKg = currKg - prevKg;
+                        rawAdjustmentKcal = -1 * (actualChangeKg - weeklyGoalKg) * dailyFactor;
+                    }
+
+                    rawNewCalories = calories + rawAdjustmentKcal;
+                    tdeeEstimate = calories - (currKg - prevKg) * dailyFactor;
+                    coachMessage = getCoachText(goal, calories, rawNewCalories, rawAdjustmentKcal, tdeeEstimate, weeklyGoalDisplay, prevWeightDisplay, currWeightDisplay);
+                    if (maintenanceRateSection) maintenanceRateSection.style.display = 'none';
+                } else {
+                    if (isNaN(prevWeightDisplay)) return;
+                    const goalWeightKg = prevKg;
+                    const diffKg = goalWeightKg - currKg;
+                    const absDiff = Math.abs(diffKg);
+                    const NEAR_THRESHOLD = 0.05;
+
+                    tdeeEstimate = calories - (currKg - goalWeightKg) * dailyFactor;
+
+                    if (absDiff <= NEAR_THRESHOLD) {
+                        rawNewCalories = calories;
+                        if (maintenanceRateSection) maintenanceRateSection.style.display = 'none';
+                        coachMessage = `You are essentially at maintenance. Keep calories around ${Math.round(calories)} and watch the trend for another week. Estimated TDEE: ${Math.round(tdeeEstimate)} kcal/day.`;
+                    } else {
+                        const DEFAULT_RATE_MAG = 0.25;
+                        const defaultRateKg = (absDiff < DEFAULT_RATE_MAG) ? diffKg : Math.sign(diffKg) * DEFAULT_RATE_MAG;
+                        const defaultRateDisplay = fromInternalKg(defaultRateKg, currentUnit);
+
+                        if (maintenanceRateSection) maintenanceRateSection.style.display = 'block';
+                        if (maintenanceRateInput) maintenanceRateInput.value = defaultRateDisplay.toFixed(2);
+                        rawAdjustmentKcal = defaultRateKg * dailyFactor;
+                        rawNewCalories = calories + rawAdjustmentKcal;
+                        if (maintenanceRateDesc) maintenanceRateDesc.innerHTML = `Default: <strong>${defaultRateDisplay.toFixed(2)} ${currentUnit}/week</strong> → <strong>${Math.abs(rawAdjustmentKcal).toFixed(0)} kcal/day</strong>. Adjust below and press Apply.`;
+                        coachMessage = `You are ${diffKg > 0 ? 'below' : 'above'} the goal weight by ${fromInternalKg(absDiff, currentUnit).toFixed(2)} ${currentUnit}. Use a small weekly rate and reassess after a full week.`;
+                    }
+                }
+
+                displayResultsFromRaw(goalLabel, calories, rawNewCalories, rawAdjustmentKcal, tdeeEstimate, coachMessage);
+                if (resultsSection) resultsSection.style.display = 'block';
+            } catch (err) {
+                return;
+            }
+        }
+
+        function applyMaintenanceRateAndUpdate() {
+            if (!goalSelect || goalSelect.value !== 'maintenance') return;
+            const calories = parseFloat(document.getElementById('calories').value);
+            const prevWeightDisplay = parseFloat(document.getElementById('prev_weight').value);
+            const currWeightDisplay = parseFloat(document.getElementById('curr_weight').value);
+            const rateDisplay = parseFloat(maintenanceRateInput ? maintenanceRateInput.value : 0);
+
+            if (isNaN(prevWeightDisplay) || isNaN(currWeightDisplay) || isNaN(calories) || isNaN(rateDisplay)) return;
+
+            const prevKg = toInternalKg(prevWeightDisplay, currentUnit);
+            const currKg = toInternalKg(currWeightDisplay, currentUnit);
+            const rateKg = toInternalKg(rateDisplay, currentUnit);
+            const dailyFactor = getDailyFactor();
+
+            const rawAdjustmentKcal = rateKg * dailyFactor;
+            const rawNewCalories = calories + rawAdjustmentKcal;
+            const tdeeEstimate = calories - (currKg - prevKg) * dailyFactor;
+
+            if (maintenanceRateDesc) maintenanceRateDesc.innerHTML = `Using <strong>${rateDisplay.toFixed(2)} ${currentUnit}/week</strong> → <strong>${Math.abs(rawAdjustmentKcal).toFixed(0)} kcal/day</strong> to move toward goal.`;
+
+            const coachMessage = `Maintenance tuning active. Keep the adjustment modest and reassess after a full week. Estimated TDEE: ${Math.round(tdeeEstimate)} kcal/day.`;
+            displayResultsFromRaw('Weight Maintenance', calories, rawNewCalories, rawAdjustmentKcal, tdeeEstimate, coachMessage);
+        }
+
+        function toggleGoalField() {
+            const goal = goalSelect ? goalSelect.value : '';
+            const goalField = document.getElementById('goalField');
+            if (goalField) goalField.style.display = (goal === 'maintenance') ? 'none' : 'block';
+            updateUnitLabels();
+        }
+
+        function resetForm() {
+            if (goalSelect) goalSelect.value = '';
+            const prev = document.getElementById('prev_weight');
+            const curr = document.getElementById('curr_weight');
+            const weekly = document.getElementById('weekly_goal');
+            const cal = document.getElementById('calories');
+            if (prev) prev.value = '';
+            if (curr) curr.value = '';
+            if (weekly) weekly.value = '';
+            if (cal) cal.value = '';
+
+            if (resultsSection) resultsSection.style.display = 'none';
+            if (actionBox) actionBox.style.display = 'none';
+            if (maintenanceRateSection) maintenanceRateSection.style.display = 'none';
+            if (calorieDisclaimer) calorieDisclaimer.style.display = 'none';
+            if (coachText) coachText.textContent = 'Run a calculation to get goal-specific guidance.';
+
+            toggleGoalField();
+            updatePlaceholders();
+        }
+
+        function copySelectedMedianToCalc() {
+            const entries = getSortedEntries();
+            const date = lookupDateInput ? lookupDateInput.value : (entries[entries.length - 1] ? entries[entries.length - 1].date : '');
+            const block = findBlockForDate(date, entries);
+            if (!block || block.median === null) return;
+            const currInput = document.getElementById('curr_weight');
+            if (currInput) currInput.value = fromInternalKg(block.median, currentUnit).toFixed(1);
+            if (tabCalculator) tabCalculator.click();
+            setTimeout(calculate, 100);
+        }
+
+        function copyPrevMedianToCalc() {
+            const entries = getSortedEntries();
+            const date = lookupDateInput ? lookupDateInput.value : (entries[entries.length - 1] ? entries[entries.length - 1].date : '');
+            const block = findBlockForDate(date, entries);
+            const prev = getPreviousBlock(block, entries);
+            if (!prev || prev.median === null) return;
+            if (goalSelect && goalSelect.value === 'maintenance') return;
+            const prevInput = document.getElementById('prev_weight');
+            if (prevInput) prevInput.value = fromInternalKg(prev.median, currentUnit).toFixed(1);
+            if (tabCalculator) tabCalculator.click();
+            setTimeout(calculate, 100);
+        }
+
+        function copyTargetHandler() {
+            if (!newCaloriesEl) return;
+            const targetText = newCaloriesEl.textContent;
+            const number = targetText.replace(/\D/g, '');
+            if (!number) return;
+            navigator.clipboard.writeText(number).then(() => {
+                const original = copyTargetBtn.innerHTML;
+                copyTargetBtn.innerHTML = '✅ Copied!';
+                setTimeout(() => { copyTargetBtn.innerHTML = original; }, 1800);
+            });
+        }
+
+        // ==================== RENDER ALL ====================
+        function renderEverything() {
+            renderAllHistoryList();
+            renderWeightChart();
+            renderCalorieHistory();
+            renderCalorieChart();
+        }
+
+        // ==================== TAB SYSTEM (safe classList) ====================
+        function activateTab(tabId) {
+            if (calculatorTab) calculatorTab.style.display = 'none';
+            if (weightLogTab) weightLogTab.style.display = 'none';
+            if (infoTab) infoTab.style.display = 'none';
+
+            if (tabCalculator) tabCalculator.classList.remove('active');
+            if (tabWeightLog) tabWeightLog.classList.remove('active');
+            if (tabInfo) tabInfo.classList.remove('active');
+
+            const content = document.getElementById(tabId);
+            if (content) content.style.display = '';
+
+            const tabButton = document.getElementById('tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1));
+            if (tabButton) tabButton.classList.add('active');
+
+            if (tabId === 'weightLogTab') {
+                renderEverything();
+                renderLookupView(lookupDateInput ? lookupDateInput.value : (logDateInput ? logDateInput.value : ''));
+            }
+            if (tabId === 'calculatorTab') {
+                renderCalorieHistory();
+                renderCalorieChart();
+            }
+        }
+
+        // ==================== DEBOUNCE ====================
+        function debounce(fn, delay) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // Safe DOM element assignment
+            unitKgBtn = document.getElementById('unitKgBtn');
+            unitLbsBtn = document.getElementById('unitLbsBtn');
+            goalSelect = document.getElementById('goal');
+            calculateBtn = document.getElementById('calculateBtn');
+            resetBtn = document.getElementById('resetBtn');
+            resultsSection = document.getElementById('resultsSection');
+            adjustmentEl = document.getElementById('adjustment');
+            currentCaloriesEl = document.getElementById('current_calories');
+            newCaloriesEl = document.getElementById('new_calories');
+            tdeeEstimateEl = document.getElementById('tdee_estimate');
+            actionBox = document.getElementById('actionBox');
+            actionText = document.getElementById('actionText');
+            maintenanceRateSection = document.getElementById('maintenanceRateSection');
+            maintenanceRateDesc = document.getElementById('maintenanceRateDesc');
+            maintenanceRateInput = document.getElementById('maintenance_rate_input');
+            applyRateBtn = document.getElementById('applyRateBtn');
+            calorieDisclaimer = document.getElementById('calorieDisclaimer');
+            coachText = document.getElementById('coachText');
+            tabCalculator = document.getElementById('tabCalculator');
+            tabWeightLog = document.getElementById('tabWeightLog');
+            tabInfo = document.getElementById('tabInfo');
+            calculatorTab = document.getElementById('calculatorTab');
+            weightLogTab = document.getElementById('weightLogTab');
+            infoTab = document.getElementById('infoTab');
+            logDateInput = document.getElementById('log_date');
+            logWeightInput = document.getElementById('log_weight');
+            lookupDateInput = document.getElementById('lookup_date');
+            addLogBtn = document.getElementById('addLogBtn');
+            clearWeekBtn = document.getElementById('clearWeekBtn');
+            setTodayBtn = document.getElementById('setTodayBtn');
+            logList = document.getElementById('logList');
+            weekEntriesList = document.getElementById('weekEntriesList');
+            selectedDateWeightEl = document.getElementById('selectedDateWeight');
+            currentWeekMedianEl = document.getElementById('selectedWeekMedian');
+            previousWeekMedianEl = document.getElementById('previousWeekMedian');
+            selectedWeekCountEl = document.getElementById('selectedWeekCount');
+            weekSummaryNote = document.getElementById('weekSummaryNote');
+            weightCoachText = document.getElementById('weightCoachText');
+            copySelectedMedianToCalcBtn = document.getElementById('copySelectedMedianToCalc');
+            copyPrevToCalcBtn = document.getElementById('copyPrevToCalc');
+            calorieHistoryListEl = document.getElementById('calorieHistoryList');
+            copyTargetBtn = document.getElementById('copyTargetBtn');
+
+            const today = new Date();
+            const utcToday = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+            const ymd = formatUTCToYMD(utcToday);
+            if (logDateInput) logDateInput.value = ymd;
+            if (lookupDateInput) lookupDateInput.value = ymd;
+
+            // Unit toggle listeners (now safe)
+            if (unitKgBtn) unitKgBtn.addEventListener('click', () => switchUnit('kg'));
+            if (unitLbsBtn) unitLbsBtn.addEventListener('click', () => switchUnit('lbs'));
+
+            // Main listeners
+            if (calculateBtn) calculateBtn.addEventListener('click', calculate);
+            if (resetBtn) resetBtn.addEventListener('click', resetForm);
+            if (applyRateBtn) applyRateBtn.addEventListener('click', applyMaintenanceRateAndUpdate);
+            if (addLogBtn) addLogBtn.addEventListener('click', () => addOrUpdateEntry(logDateInput ? logDateInput.value : '', parseFloat(logWeightInput ? logWeightInput.value : 0)));
+            if (clearWeekBtn) clearWeekBtn.addEventListener('click', clearSelectedWeek);
+            if (setTodayBtn) setTodayBtn.addEventListener('click', () => {
+                const todayYmd = formatUTCToYMD(new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())));
+                if (logDateInput) logDateInput.value = todayYmd;
+                if (lookupDateInput) lookupDateInput.value = todayYmd;
+            });
+
+            if (copySelectedMedianToCalcBtn) copySelectedMedianToCalcBtn.addEventListener('click', copySelectedMedianToCalc);
+            if (copyPrevToCalcBtn) copyPrevToCalcBtn.addEventListener('click', copyPrevMedianToCalc);
+            if (copyTargetBtn) copyTargetBtn.addEventListener('click', copyTargetHandler);
+
+            if (goalSelect) goalSelect.addEventListener('change', () => {
+                toggleGoalField();
+                calculate();
+            });
+
+            // Live calculation
+            const debounceCalc = debounce(calculate, 350);
+            const liveInputs = ['prev_weight', 'curr_weight', 'weekly_goal', 'calories'];
+            liveInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', debounceCalc);
+            });
+
+            // Enter key
+            document.querySelectorAll('#calculatorTab input, #calculatorTab select').forEach(el => {
+                el.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') calculate();
+                });
+            });
+
+            if (maintenanceRateInput) maintenanceRateInput.addEventListener('input', debounce(() => {
+                if (goalSelect && goalSelect.value === 'maintenance' && maintenanceRateSection && maintenanceRateSection.style.display !== 'none') {
+                    applyMaintenanceRateAndUpdate();
+                }
+            }, 400));
+
+            // Tab system
+            if (tabCalculator) tabCalculator.addEventListener('click', () => activateTab('calculatorTab'));
+            if (tabWeightLog) tabWeightLog.addEventListener('click', () => activateTab('weightLogTab'));
+            if (tabInfo) tabInfo.addEventListener('click', () => activateTab('infoTab'));
+
+            if (lookupDateInput) lookupDateInput.addEventListener('change', () => renderLookupView(lookupDateInput.value));
+            if (logDateInput) logDateInput.addEventListener('change', () => {
+                if (lookupDateInput && !lookupDateInput.value) lookupDateInput.value = logDateInput.value;
+            });
+
+            toggleGoalField();
+            updateUnitLabels();
+            updatePlaceholders();
+            renderEverything();
+            renderLookupView(lookupDateInput ? lookupDateInput.value : '');
+
+            window.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    renderEverything();
+                    renderLookupView(lookupDateInput ? lookupDateInput.value : '');
+                }
+            });
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
